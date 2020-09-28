@@ -1,0 +1,27 @@
+{
+	"use_led": true,
+	"use_buttons": true,
+	"setup_network": true,
+	"enable_webrepl": false,
+	"show_progress_ticks": true,
+	"status_poll_interval_seconds": 20,
+	"idle_standby_minutes": 10,
+	"long_press_duration_milliseconds": 500,
+	"api_request_dot_size": 1,
+	"spotify": {
+		"client_id": "",
+		"client_secret": ""
+	},
+	"pins": {
+		"led": 2,
+		"scl": 22,
+		"sda": 21,
+		"button_playpause": 4,
+		"button_next": 5
+	},
+	"wlan": {
+		"ssid": "",
+		"password": "",
+		"mdns": "spostatus"
+	}
+}
