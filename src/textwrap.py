@@ -18,7 +18,7 @@ def wrap(inputstring, width = 70, center = False):
                 o_buffer = chunk
                 continue
         else:
-             if len(o_buffer) + len(chunk) + 1 <= width:
+            if len(o_buffer) + len(chunk) + 1 <= width:
                 o_buffer = "{} {}".format(o_buffer, chunk)
                 continue
 

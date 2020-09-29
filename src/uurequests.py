@@ -8,6 +8,9 @@ class Response:
         self.raw = f
         self.encoding = "utf-8"
         self._cached = None
+        self.status_code = 0
+        self.reason = ""
+        self.headers = {}
 
     def close(self):
         if self.raw:
@@ -34,7 +37,7 @@ class Response:
         return ujson.loads(self.content)
 
 
-def request(method, url, data=None, json=None, headers={}, stream=None, parse_headers=True):
+def request(method, url, data=None, json=None, headers={}, parse_headers=True):
     redir_cnt = 1
     while True:
         try:

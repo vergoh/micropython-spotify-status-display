@@ -8,7 +8,6 @@ always_safe = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 def quote(s):
     res = []
-    replacements = {}
     for c in s:
         if c in always_safe:
             res.append(c)
@@ -34,16 +33,10 @@ def urlencode(query):
             l.append(k + '=' + v)
     return '&'.join(l)
 
-def b64encode(s, altchars=None):
+def b64encode(s):
     """Reproduced from micropython base64"""
     if not isinstance(s, (bytes, bytearray)):
         raise TypeError("expected bytes, not %s" % s.__class__.__name__)
     # Strip off the trailing newline
     encoded = binascii.b2a_base64(s)[:-1]
-    if altchars is not None:
-        if not isinstance(altchars, bytes_types):
-            raise TypeError("expected bytes, not %s"
-                            % altchars.__class__.__name__)
-        assert len(altchars) == 2, repr(altchars)
-        return encoded.translate(bytes.maketrans(b'+/', altchars))
     return encoded

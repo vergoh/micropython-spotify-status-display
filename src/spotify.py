@@ -157,18 +157,18 @@ class Spotify:
             return True
 
         if api_reply['status_code'] in warn_status_list:
-            warning_text = "{} api {}: {}".format(api_call_name, r['status_code'], r['text'])
+            warning_text = "{} api {}: {}".format(api_call_name, api_reply['status_code'], api_reply['text'])
             print(warning_text)
             self.oled.show(self.name, warning_text, separator = False)
             time.sleep_ms(warn_duration_ms)
             return False
 
         if len(raise_status_list) == 0 or api_reply['status_code'] in raise_status_list:
-            self.oled.show(self.name, "{} api error {}".format(api_call_name, r['status_code']), separator = False)
-            raise RuntimeError("Error {} - {}".format(r['status_code'], r['text']))
+            self.oled.show(self.name, "{} api error {}".format(api_call_name, api_reply['status_code']), separator = False)
+            raise RuntimeError("Error {} - {}".format(api_reply['status_code'], api_reply['text']))
 
-        self.oled.show(self.name, "{} api unhandled error {}".format(api_call_name, r['status_code']), separator = False)
-        raise RuntimeError("Error unhandled status_code {} - {}".format(r['status_code'], r['text']))
+        self.oled.show(self.name, "{} api unhandled error {}".format(api_call_name, api_reply['status_code']), separator = False)
+        raise RuntimeError("Error unhandled status_code {} - {}".format(api_reply['status_code'], api_reply['text']))
 
     def _get_api_tokens(self, authorization_code):
         self.oled.show_corner_dot(self.config['api_request_dot_size'])

@@ -3,13 +3,12 @@
 # https://github.com/vergoh/micropython-spotify-status-display
 
 import time
-import ujson
 import socket
 import select
 
 # imports from additional files
 import uurequests as requests
-from helpers import *
+from helpers import b64encode, urlencode
 
 spotify_account_api_base = "https://accounts.spotify.com/api"
 spotify_api_base = "https://api.spotify.com"
@@ -141,7 +140,7 @@ def get_authorization_code(client_id, redirect_uri, ip, mdns):
                 print("got params: {}".format(params))
                 cl.send('HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n')
                 if 'code' in params:
-                    cl.send("<html><head><title>Login complete</title></head><body>Login complete, this page can now be closed</body></html>\r\n".format(params))
+                    cl.send("<html><head><title>Login complete</title></head><body>Login complete, this page can now be closed</body></html>\r\n")
                 else:
                     cl.send("<html><head><title>Login error</title></head><body>{}</body></html>\r\n".format(params))
                 cl.close()

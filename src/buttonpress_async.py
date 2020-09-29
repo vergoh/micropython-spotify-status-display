@@ -54,7 +54,7 @@ class button_async():
         self._was_pressed = False
         self._press_duration_ms = 0
 
-    def wait_for_press(self):
+    async def wait_for_press(self):
         self.reset_press()
         while True:
             if self.was_pressed():
