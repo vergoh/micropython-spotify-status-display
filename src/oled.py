@@ -30,7 +30,10 @@ class OLED:
             y = 10
 
         for a_line in a:
-            self.oled.text(a_line, 0, y)
+            x = 0
+            if len(a_line.strip()) % 2 == 1:
+                x = 4
+            self.oled.text(a_line, x, y)
             y = y + 10
 
         if len(a) + len(t) <= 5:
@@ -66,7 +69,10 @@ class OLED:
                     self.oled.pixel(i, y - int(spacing / 2) - 1, 1)
 
         for t_line in t:
-            self.oled.text(t_line, 0, y)
+            x = 0
+            if len(t_line.strip()) % 2 == 1:
+                x = 4
+            self.oled.text(t_line, x, y)
             y = y + 10
 
         self.oled.show()
