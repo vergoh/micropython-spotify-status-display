@@ -41,6 +41,8 @@ Micropython implementation for ESP32 using a small OLED display to show the "cur
 
 Example connections for "ESP32 DevKit v1" and "Geekcreit 30 Pin" pins. Pins may vary on other ESP32 boards.
 
+![Wiring Diagram](images/wiring.png)
+
 #### OLED
 
 | ESP32 | OLED |
