@@ -332,7 +332,7 @@ class Spotify:
                 if progress is not None:
                     if progress_ms > cp['item']['duration_ms']:
                         break
-                    progress = int(round(progress_ms / float(cp['item']['duration_ms']) * 100, 0))
+                    progress = int(round(progress_ms / cp['item']['duration_ms'] * 100, 0))
 
                 self.oled.show(cp['item'].get('artists', [{}])[0].get('name'), cp['item'].get('name'), progress = progress, ticks = self.config['show_progress_ticks'])
                 if time.time() >= progress_start + seconds:
@@ -367,6 +367,24 @@ class Spotify:
 
         self._reset_button_presses()
         self.oled.show(self.name, "resuming operations", separator = False)
+
+    async def _start_standby(self, last_playing):
+        loop_begins = time.ticks_ms()
+
+        while loop_begins + (self.config['status_poll_interval_seconds'] - 1) * 1000 > time.ticks_ms():
+
+            standby_time = last_playing + self.config['idle_standby_minutes'] * 60
+            progress = int(round((standby_time - time.time()) / (self.config['idle_standby_minutes'] * 60) * 100, 0))
+
+            self.oled.show("Spotify", "not playing", progress = progress, ticks = False)
+
+            if time.time() >= standby_time:
+                return True
+
+            if await self._wait_for_button_press_ms(1000):
+                return False
+
+        return False
 
     async def _looper(self):
         self.oled.show("Spotify status", "start", separator = False)
@@ -411,9 +429,7 @@ class Spotify:
             if playing:
                 await self._show_play_progress_for_seconds(currently_playing, self.config['status_poll_interval_seconds'])
             else:
-                self.oled.show("Spotify", "not playing", separator = False)
-
-                if time.time() >= last_playing + self.config['idle_standby_minutes'] * 60:
+                if await self._start_standby(last_playing):
                     if self.config['use_buttons']:
                         await self._standby()
                         last_playing = time.time()
@@ -422,8 +438,6 @@ class Spotify:
                         self.oled.clear()
                         print("stopping due to inactivity")
                         break
-
-                await self._wait_for_button_press_ms(self.config['status_poll_interval_seconds'] * 1000)
 
         print("Loop ended")
 
@@ -434,3 +448,8 @@ class Spotify:
         except KeyboardInterrupt:
             print("keyboard interrupt received, stopping")
             self.oled.clear()
+        except RuntimeError:
+            raise
+        except Exception as e:
+            self.oled.show(e.__class__.__name__, str(e))
+            raise
