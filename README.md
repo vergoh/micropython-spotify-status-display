@@ -2,6 +2,8 @@
 
 Micropython implementation for ESP32 using a small OLED display to show the "currently playing" information of a Spotify playback device. Optionally two buttons can be added for controlling the playback device. For normal usability, having the buttons is recommended.
 
+![Breadboard prototype](images/prototype.jpg)
+
 ## Features
 
 - "currently playing" track shown with artist name and progress bar
@@ -16,8 +18,15 @@ Micropython implementation for ESP32 using a small OLED display to show the "cur
 
 ## Requirements
 
-- esp32 with [micropython](https://micropython.org/) 1.13 or later
-- ssd1306 compatible 128x64 pixel display in i2c mode (0.91" oled tested)
+- ESP32 with [micropython](https://micropython.org/) 1.13 or later
+- SSD1306 or SSD1309 compatible 128x64 pixel OLED display in i2c mode
+  - verified
+    - [0.96" SSD1306](https://www.google.com/search?q=128x64+oled+i2c+0.96+ssd1306)
+    - [2.42" SSD1309](https://www.google.com/search?q=128x64+oled+i2c+2.42+ssd1309)
+  - most likely ok
+    - [1.3" SSD1306](https://www.google.com/search?q=128x64+oled+i2c+1.3+ssd1306)
+  - not verified
+    - [1.3" SH1106](https://www.google.com/search?q=128x64+oled+i2c+1.3+sh1106)
 - wlan connectivity
 - Spotify account, Premium needed for playback control
 
@@ -30,20 +39,21 @@ Micropython implementation for ESP32 using a small OLED display to show the "cur
 
 ## TODO
 
-- fix possible edge cases in api usage
-- verify/implement support for 2.42" oled
-- async api requests
+- find and fix possible edge cases in api usage
+- async api requests (if possible)
 - 3D printed case or other more permanent solution
 
 ## Getting started
 
 ### Wiring
 
-Example connections for "ESP32 DevKit v1" and "Geekcreit 30 Pin" pins. Pins may vary on other ESP32 boards.
+Example connections for "ESP32 DevKit v1" and "Geekcreit 30 Pin" pins using a SSD1306 based OLED. Pins may vary on other ESP32 boards.
 
 ![Wiring Diagram](images/wiring.png)
 
-#### OLED
+#### SSD1306 OLED
+
+For 0.96" and 1.3" OLEDs using the SSD1306 chip in i2c mode.
 
 | ESP32 | OLED |
 | --- | --- |
@@ -51,6 +61,26 @@ Example connections for "ESP32 DevKit v1" and "Geekcreit 30 Pin" pins. Pins may 
 | GND | GND |
 | D21 | SDA |
 | D22 | SCK |
+
+#### SSD1309 OLED
+
+For 2.42" OLEDs using the SSD1309 chip in i2c mode. Note that most of these OLEDs require resistors to be moved for enabling the i2c mode.
+
+| ESP32 | OLED |
+| --- | --- |
+| 3V3 | VCC |
+| GND | GND |
+| D21 | SDA |
+| D22 | SCL |
+
+3V3 may need to be provided using an extra regulator connected to ESP32 5V if the 3V3 regulator on the ESP32 isn't able to handle both wlan and OLED being active at the same time. This issue can be seen as a "Brownout detector was triggered" console message followed by a forced reset.
+
+Additionally, OLED RES needs to be connected to OLED VCC using a 10 kΩ resistor and to GND using a 10-100 μF capacitor.
+
+| OLED | component | OLED |
+| --- | --- | ---
+| RES | 10 kΩ resistor | VCC |
+| RES | 10-100 μF capacitor | GND |
 
 #### Buttons
 
