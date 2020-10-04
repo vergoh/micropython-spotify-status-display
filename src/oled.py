@@ -8,12 +8,13 @@ import textwrap
 
 class OLED:
 
-    def __init__(self, scl_pin = 22, sda_pin = 21):
+    def __init__(self, scl_pin = 22, sda_pin = 21, contrast = 127):
         self.i2c = I2C(-1, scl = Pin(scl_pin), sda = Pin(sda_pin))
         self.oled_width = 128
         self.oled_height = 64
         self.oled = ssd1306.SSD1306_I2C(self.oled_width, self.oled_height, self.i2c)
         self.oled.fill(0)
+        self.oled.contrast(contrast)
         self.oled.text("      ...      ", 0, 30)
         self.oled.show()
         self.standby_x = 0

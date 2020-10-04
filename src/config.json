@@ -4,6 +4,7 @@
 	"setup_network": true,
 	"enable_webrepl": false,
 	"show_progress_ticks": true,
+	"contrast": 127,
 	"status_poll_interval_seconds": 20,
 	"idle_standby_minutes": 10,
 	"long_press_duration_milliseconds": 500,

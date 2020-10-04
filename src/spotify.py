@@ -30,7 +30,7 @@ class Spotify:
                 time.sleep_ms(100)
             self.led.value(0)
 
-        self.oled = oled.OLED(scl_pin = self.config['pins']['scl'], sda_pin = self.config['pins']['sda'])
+        self.oled = oled.OLED(scl_pin = self.config['pins']['scl'], sda_pin = self.config['pins']['sda'], contrast = self.config['contrast'])
         self.oled.show(self.name, "__init__", separator = False)
 
         self._validate_config()
@@ -76,7 +76,7 @@ class Spotify:
 
     def _validate_config(self):
         boolean_entries = ['use_led', 'use_buttons', 'setup_network', 'enable_webrepl', 'show_progress_ticks']
-        integer_entries = ['status_poll_interval_seconds', 'idle_standby_minutes', 'long_press_duration_milliseconds', 'api_request_dot_size']
+        integer_entries = ['contrast', 'status_poll_interval_seconds', 'idle_standby_minutes', 'long_press_duration_milliseconds', 'api_request_dot_size']
         dict_entries = ['spotify', 'pins', 'wlan']
         spotify_entries = ['client_id', 'client_secret']
         pin_entries = ['led', 'scl', 'sda', 'button_playpause', 'button_next']
