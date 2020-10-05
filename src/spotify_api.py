@@ -14,7 +14,7 @@ spotify_account_api_base = "https://accounts.spotify.com/api"
 spotify_api_base = "https://api.spotify.com"
 
 def _spotify_api_request(method, url, data = None, headers = None, retry = True):
-    ret = {'status_code': 0, 'json': {}, 'text': ''}
+    ret = {'status_code': 0, 'json': {}, 'text': 'No reply content'}
     print("{} {}".format(method, url))
     r = requests.request(method, url, data = data, headers = headers)
 
@@ -32,9 +32,19 @@ def _spotify_api_request(method, url, data = None, headers = None, retry = True)
     try:
         ret['json'] = r.json()
     except:
-        ret['text'] = r.text
+        pass
 
-    r.close()
+    if len(ret['json']) == 0:
+        try:
+            ret['text'] = r.text
+        except:
+            pass
+
+    try:
+        r.close()
+    except:
+        pass
+
     del r
     return ret
 
