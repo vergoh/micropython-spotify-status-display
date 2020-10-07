@@ -332,7 +332,7 @@ class Spotify:
                 if progress is not None:
                     if progress_ms > cp['item']['duration_ms']:
                         break
-                    progress = int(round(progress_ms / cp['item']['duration_ms'] * 100, 0))
+                    progress = progress_ms / cp['item']['duration_ms'] * 100
 
                 self.oled.show(cp['item'].get('artists', [{}])[0].get('name'), cp['item'].get('name'), progress = progress, ticks = self.config['show_progress_ticks'])
                 if time.time() >= progress_start + seconds:
@@ -374,7 +374,7 @@ class Spotify:
         while loop_begins + (self.config['status_poll_interval_seconds'] - 1) * 1000 > time.ticks_ms():
 
             standby_time = last_playing + self.config['idle_standby_minutes'] * 60
-            progress = int(round((standby_time - time.time()) / (self.config['idle_standby_minutes'] * 60) * 100, 0))
+            progress = (standby_time - time.time()) / (self.config['idle_standby_minutes'] * 60) * 100
 
             self.oled.show("Spotify", "not playing", progress = progress, ticks = False)
 
