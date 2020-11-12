@@ -22,7 +22,7 @@ Micropython implementation for ESP32 using a small OLED display to show the "cur
 - SSD1306 or SSD1309 compatible 128x64 pixel OLED display in i2c mode
   - verified
     - [0.96" SSD1306](https://www.google.com/search?q=128x64+oled+i2c+0.96+ssd1306)
-    - [2.42" SSD1309](https://www.google.com/search?q=128x64+oled+i2c+2.42+ssd1309)
+    - [2.42" SSD1309](https://www.google.com/search?q=128x64+oled+i2c+2.42+ssd1309) (recommended)
   - most likely ok
     - [1.3" SSD1306](https://www.google.com/search?q=128x64+oled+i2c+1.3+ssd1306)
   - not verified
@@ -42,6 +42,7 @@ Micropython implementation for ESP32 using a small OLED display to show the "cur
 - find and fix possible edge cases in api usage
 - async api requests (if possible)
 - 3D printed case or other more permanent solution
+  - partially done for Lolin32 lite + 2.42" OLED, open back wall design [available](stl/case.stl)
 
 ## Getting started
 
@@ -73,7 +74,7 @@ For 2.42" OLEDs using the SSD1309 chip in i2c mode. Note that most of these OLED
 | D21 | SDA |
 | D22 | SCL |
 
-3V3 may need to be provided using an extra regulator connected to ESP32 5V if the 3V3 regulator on the ESP32 isn't able to handle both wlan and OLED being active at the same time. This issue can be seen as a "Brownout detector was triggered" console message followed by a forced reset.
+A capacitor of around 220-470 μF is needed between ESP32 3V3 and GND in order to avoid brownout during wlan startup when OLED is being active at the same time. This issue can be seen as a "Brownout detector was triggered" console message followed by a forced reset.
 
 Additionally, OLED RES needs to be connected to OLED VCC using a 10 kΩ resistor and to GND using a 10-100 μF capacitor.
 
@@ -123,7 +124,7 @@ Left button controls play/pause/resume with short presses. A long press (>= 500 
 
 Right button requests the next track to be started.
 
-Pressing either buttons during standby will wake up the display.
+Pressing left button during standby will wake up the display and try to resume playback. Pressing right button during standby only wakes up the display.
 
 ## Included 3rd party implementations
 
