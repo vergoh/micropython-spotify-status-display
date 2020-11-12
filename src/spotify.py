@@ -39,12 +39,9 @@ class Spotify:
             self.oled.show(self.name, "client not configured", separator = False)
             raise RuntimeError("client_id and/or client_secret not configured")
 
-        if self.config['use_buttons']:
-            self.button_playpause = button_async(Pin(self.config['pins']['button_playpause'], Pin.IN, Pin.PULL_UP), long_press_duration_ms = self.config['long_press_duration_milliseconds'])
-            self.button_next = button_async(Pin(self.config['pins']['button_next'], Pin.IN, Pin.PULL_UP), long_press_duration_ms = self.config['long_press_duration_milliseconds'])
-            print("buttons enabled")
-        else:
-            print("buttons disabled")
+        self.button_playpause = button_async(Pin(self.config['pins']['button_playpause'], Pin.IN, Pin.PULL_UP), long_press_duration_ms = self.config['long_press_duration_milliseconds'])
+        self.button_next = button_async(Pin(self.config['pins']['button_next'], Pin.IN, Pin.PULL_UP), long_press_duration_ms = self.config['long_press_duration_milliseconds'])
+        print("buttons enabled")
 
         if self.config['setup_network']:
             self.wlan_ap = network.WLAN(network.AP_IF)
@@ -62,11 +59,7 @@ class Spotify:
             import webrepl
             webrepl.start()
 
-        while not self.wlan.isconnected():
-            self.oled.show(self.name, "waiting for connection", separator = False)
-            time.sleep_ms(500)
-            self.oled.show(self.name, "waiting for connection", separator = True)
-            time.sleep_ms(500)
+        self._wait_for_connection()
 
         self.ip = self.wlan.ifconfig()[0]
         self.redirect_uri = "http://{}.local/callback/".format(self.config['wlan']['mdns'])
@@ -75,7 +68,7 @@ class Spotify:
         print("Connected at {} as {}".format(self.ip, self.config['wlan']['mdns']))
 
     def _validate_config(self):
-        boolean_entries = ['use_led', 'use_buttons', 'setup_network', 'enable_webrepl', 'show_progress_ticks']
+        boolean_entries = ['use_led', 'setup_network', 'enable_webrepl', 'show_progress_ticks']
         integer_entries = ['contrast', 'status_poll_interval_seconds', 'idle_standby_minutes', 'long_press_duration_milliseconds', 'api_request_dot_size']
         dict_entries = ['spotify', 'pins', 'wlan']
         spotify_entries = ['client_id', 'client_secret']
@@ -110,15 +103,25 @@ class Spotify:
         self.oled.show("config.json", e)
         raise RuntimeError(e)
 
+    def _wait_for_connection(self):
+        was_connected = self.wlan.isconnected()
+
+        while not self.wlan.isconnected():
+            self.oled.show(self.name, "waiting for connection", separator = False)
+            time.sleep_ms(500)
+            self.oled.show(self.name, "waiting for connection", separator = True)
+            time.sleep_ms(500)
+
+        if not was_connected:
+            self._reset_button_presses()
+
     def _reset_button_presses(self):
-        if self.config['use_buttons']:
-            self.button_playpause.reset_press()
-            self.button_next.reset_press()
+        self.button_playpause.reset_press()
+        self.button_next.reset_press()
 
     def _check_button_presses(self):
-        if self.config['use_buttons']:
-            if self.button_playpause.was_pressed() or self.button_next.was_pressed():
-                return True
+        if self.button_playpause.was_pressed() or self.button_next.was_pressed():
+            return True
         return False
 
     def _handle_buttons(self, api_tokens, playing):
@@ -365,7 +368,9 @@ class Spotify:
             self.oled.standby()
             button_pressed = await self._wait_for_button_press_ms(10 * 1000)
 
-        self._reset_button_presses()
+        if button_pressed and not self.button_playpause.was_pressed():
+            self._reset_button_presses()
+
         self.oled.show(self.name, "resuming operations", separator = False)
 
     async def _start_standby(self, last_playing):
@@ -411,6 +416,8 @@ class Spotify:
         self._reset_button_presses()
 
         while True:
+            self._wait_for_connection()
+
             if time.time() >= api_tokens['timestamp'] + api_tokens['expires_in'] - 30:
                 api_tokens = self._refresh_access_token(api_tokens)
 
@@ -430,14 +437,9 @@ class Spotify:
                 await self._show_play_progress_for_seconds(currently_playing, self.config['status_poll_interval_seconds'])
             else:
                 if await self._start_standby(last_playing):
-                    if self.config['use_buttons']:
-                        await self._standby()
-                        last_playing = time.time()
-                        continue
-                    else:
-                        self.oled.clear()
-                        print("stopping due to inactivity")
-                        break
+                    await self._standby()
+                    last_playing = time.time()
+                    continue
 
         print("Loop ended")
 

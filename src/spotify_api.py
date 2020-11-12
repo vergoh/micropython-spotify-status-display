@@ -16,7 +16,11 @@ spotify_api_base = "https://api.spotify.com"
 def _spotify_api_request(method, url, data = None, headers = None, retry = True):
     ret = {'status_code': 0, 'json': {}, 'text': 'No reply content'}
     print("{} {}".format(method, url))
-    r = requests.request(method, url, data = data, headers = headers)
+    try:
+        r = requests.request(method, url, data = data, headers = headers)
+    except OSError:
+        r = None
+        pass
 
     if r is None or r.status_code < 200 or r.status_code >= 500:
         if retry:

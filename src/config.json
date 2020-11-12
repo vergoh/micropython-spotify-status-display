@@ -1,6 +1,5 @@
 {
-	"use_led": true,
-	"use_buttons": true,
+	"use_led": false,
 	"setup_network": true,
 	"enable_webrepl": false,
 	"show_progress_ticks": true,
