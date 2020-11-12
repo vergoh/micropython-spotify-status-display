@@ -20,7 +20,6 @@ def _spotify_api_request(method, url, data = None, headers = None, retry = True)
         r = requests.request(method, url, data = data, headers = headers)
     except OSError:
         r = None
-        pass
 
     if r is None or r.status_code < 200 or r.status_code >= 500:
         if retry:
