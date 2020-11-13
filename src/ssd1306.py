@@ -1,4 +1,5 @@
 # MicroPython SSD1306 OLED driver, I2C and SPI interfaces
+# based on
 # https://github.com/adafruit/micropython-adafruit-ssd1306
 
 import time
@@ -71,6 +72,10 @@ class SSD1306:
     def contrast(self, contrast):
         self.write_cmd(SET_CONTRAST)
         self.write_cmd(contrast)
+
+    def precharge(self, precharge):
+        self.write_cmd(SET_PRECHARGE)
+        self.write_cmd(precharge)
 
     def invert(self, invert):
         self.write_cmd(SET_NORM_INV | (invert & 1))

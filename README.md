@@ -130,6 +130,6 @@ Pressing left button during standby will wake up the display and try to resume p
 
 | file | description |
 | --- | --- |
-| `ssd1306.py` | <https://github.com/adafruit/micropython-adafruit-ssd1306> |
+| `ssd1306.py` | based on <https://github.com/adafruit/micropython-adafruit-ssd1306> |
 | `uurequests.py` | based on <https://github.com/pfalcon/pycopy-lib/blob/master/uurequests/uurequests.py> |
 | `helpers.py` | reduced from <https://github.com/blainegarrett/urequests2> |

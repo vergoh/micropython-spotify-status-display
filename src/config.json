@@ -4,6 +4,7 @@
 	"enable_webrepl": false,
 	"show_progress_ticks": true,
 	"contrast": 127,
+	"low_contrast_mode": false,
 	"status_poll_interval_seconds": 20,
 	"idle_standby_minutes": 10,
 	"long_press_duration_milliseconds": 500,

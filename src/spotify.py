@@ -31,6 +31,8 @@ class Spotify:
             self.led.value(0)
 
         self.oled = oled.OLED(scl_pin = self.config['pins']['scl'], sda_pin = self.config['pins']['sda'], contrast = self.config['contrast'])
+        if self.config['low_contrast_mode']:
+            self.oled.oled.precharge(0x22)
         self.oled.show(self.name, "__init__", separator = False)
 
         self._validate_config()
@@ -68,7 +70,7 @@ class Spotify:
         print("Connected at {} as {}".format(self.ip, self.config['wlan']['mdns']))
 
     def _validate_config(self):
-        boolean_entries = ['use_led', 'setup_network', 'enable_webrepl', 'show_progress_ticks']
+        boolean_entries = ['use_led', 'setup_network', 'enable_webrepl', 'show_progress_ticks', 'low_contrast_mode']
         integer_entries = ['contrast', 'status_poll_interval_seconds', 'idle_standby_minutes', 'long_press_duration_milliseconds', 'api_request_dot_size']
         dict_entries = ['spotify', 'pins', 'wlan']
         spotify_entries = ['client_id', 'client_secret']
