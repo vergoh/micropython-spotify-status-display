@@ -270,7 +270,7 @@ class Spotify:
         r = spotify_api.resume_playback(api_tokens, device_id = device_id)
         self.oled.hide_corner_dot(self.config['api_request_dot_size'])
 
-        self._validate_api_reply("resume", r, ok_status_list = [204, 404])
+        self._validate_api_reply("resume", r, ok_status_list = [204, 404], warn_status_list = [403])
 
         if r['status_code'] == 404:
             print("no active device found")
