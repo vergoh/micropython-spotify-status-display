@@ -2,7 +2,7 @@
 
 Micropython implementation for ESP32 using a small OLED display to show the "currently playing" information of a Spotify playback device. Optionally two buttons can be added for controlling the playback device. For normal usability, having the buttons is recommended.
 
-![Breadboard prototype](images/prototype.jpg)
+![2.42" OLED in 3D printed case](images/2_42inch_oled_in_case.jpg)
 
 ## Features
 
