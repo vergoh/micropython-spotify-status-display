@@ -6,6 +6,7 @@
 	"contrast": 127,
 	"low_contrast_mode": false,
 	"status_poll_interval_seconds": 20,
+	"standby_status_poll_interval_minutes": 2,
 	"idle_standby_minutes": 10,
 	"blank_oled_on_standby": false,
 	"long_press_duration_milliseconds": 500,

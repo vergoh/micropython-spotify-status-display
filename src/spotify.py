@@ -71,7 +71,7 @@ class Spotify:
 
     def _validate_config(self):
         boolean_entries = ['use_led', 'setup_network', 'enable_webrepl', 'show_progress_ticks', 'low_contrast_mode', 'blank_oled_on_standby']
-        integer_entries = ['contrast', 'status_poll_interval_seconds', 'idle_standby_minutes', 'long_press_duration_milliseconds', 'api_request_dot_size']
+        integer_entries = ['contrast', 'status_poll_interval_seconds', 'standby_status_poll_interval_minutes', 'idle_standby_minutes', 'long_press_duration_milliseconds', 'api_request_dot_size']
         dict_entries = ['spotify', 'pins', 'wlan']
         spotify_entries = ['client_id', 'client_secret']
         pin_entries = ['led', 'scl', 'sda', 'button_playpause', 'button_next']
@@ -368,16 +368,30 @@ class Spotify:
 
         if self.config['blank_oled_on_standby']:
             self.oled.clear()
+        else:
+            self.oled.standby()
+            oled_updated = time.time()
+
+        standby_start = time.time()
 
         while not button_pressed:
             if not self.config['blank_oled_on_standby']:
-                self.oled.standby()
-            button_pressed = await self._wait_for_button_press_ms(10 * 1000)
+                if time.time() >= oled_updated + 10:
+                    self.oled.standby()
+                    oled_updated = time.time()
+            button_pressed = await self._wait_for_button_press_ms(1000)
+            if self.config['standby_status_poll_interval_minutes'] > 0:
+                if time.time() >= standby_start + ( 60 * self.config['standby_status_poll_interval_minutes'] ):
+                    print("standby status poll")
+                    break
 
-        if button_pressed and not self.button_playpause.was_pressed():
-            self._reset_button_presses()
-
-        self.oled.show(self.name, "resuming operations", separator = False)
+        if button_pressed:
+            if not self.button_playpause.was_pressed():
+                self._reset_button_presses()
+            self.oled.show(self.name, "resuming operations", separator = False)
+            return True
+        else:
+            return False
 
     async def _start_standby(self, last_playing):
         loop_begins = time.ticks_ms()
@@ -387,10 +401,10 @@ class Spotify:
             standby_time = last_playing + self.config['idle_standby_minutes'] * 60
             progress = (standby_time - time.time()) / (self.config['idle_standby_minutes'] * 60) * 100
 
-            self.oled.show("Spotify", "not playing", progress = progress, ticks = False)
-
             if time.time() >= standby_time:
                 return True
+
+            self.oled.show("Spotify", "not playing", progress = progress, ticks = False)
 
             if await self._wait_for_button_press_ms(1000):
                 return False
@@ -443,8 +457,8 @@ class Spotify:
                 await self._show_play_progress_for_seconds(currently_playing, self.config['status_poll_interval_seconds'])
             else:
                 if await self._start_standby(last_playing):
-                    await self._standby()
-                    last_playing = time.time()
+                    if await self._standby():
+                        last_playing = time.time()
                     continue
 
         print("Loop ended")
