@@ -70,7 +70,7 @@ class Spotify:
         print("Connected at {} as {}".format(self.ip, self.config['wlan']['mdns']))
 
     def _validate_config(self):
-        boolean_entries = ['use_led', 'setup_network', 'enable_webrepl', 'show_progress_ticks', 'low_contrast_mode']
+        boolean_entries = ['use_led', 'setup_network', 'enable_webrepl', 'show_progress_ticks', 'low_contrast_mode', 'blank_oled_on_standby']
         integer_entries = ['contrast', 'status_poll_interval_seconds', 'idle_standby_minutes', 'long_press_duration_milliseconds', 'api_request_dot_size']
         dict_entries = ['spotify', 'pins', 'wlan']
         spotify_entries = ['client_id', 'client_secret']
@@ -366,8 +366,12 @@ class Spotify:
         self._reset_button_presses()
         button_pressed = self._check_button_presses()
 
+        if self.config['blank_oled_on_standby']:
+            self.oled.clear()
+
         while not button_pressed:
-            self.oled.standby()
+            if not self.config['blank_oled_on_standby']:
+                self.oled.standby()
             button_pressed = await self._wait_for_button_press_ms(10 * 1000)
 
         if button_pressed and not self.button_playpause.was_pressed():

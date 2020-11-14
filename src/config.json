@@ -7,6 +7,7 @@
 	"low_contrast_mode": false,
 	"status_poll_interval_seconds": 20,
 	"idle_standby_minutes": 10,
+	"blank_oled_on_standby": false,
 	"long_press_duration_milliseconds": 500,
 	"api_request_dot_size": 1,
 	"spotify": {
