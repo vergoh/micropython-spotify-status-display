@@ -7,7 +7,7 @@
 	"low_contrast_mode": false,
 	"status_poll_interval_seconds": 20,
 	"standby_status_poll_interval_minutes": 2,
-	"idle_standby_minutes": 10,
+	"idle_standby_minutes": 5,
 	"blank_oled_on_standby": false,
 	"long_press_duration_milliseconds": 500,
 	"api_request_dot_size": 1,
@@ -16,10 +16,10 @@
 		"client_secret": ""
 	},
 	"pins": {
-		"led": 2,
-		"scl": 22,
-		"sda": 21,
-		"button_playpause": 4,
+		"led": 22,
+		"scl": 18,
+		"sda": 23,
+		"button_playpause": 17,
 		"button_next": 5
 	},
 	"wlan": {

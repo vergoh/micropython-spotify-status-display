@@ -35,7 +35,7 @@ Micropython implementation for ESP32 using a small OLED display to show the "cur
 - buttons don't react during api requests
 - buttons require Spotify Premium due to api restrictions
 - default font shows correctly mainly us-ascii characters
-- playback device isn't aware of the status display resulting in delay status changes when the playback device is directly controlled
+- playback device isn't aware of the status display resulting in delayed status changes when the playback device is directly controlled
 
 ## TODO
 
@@ -48,7 +48,7 @@ Micropython implementation for ESP32 using a small OLED display to show the "cur
 
 ### Wiring
 
-Example connections for "ESP32 DevKit v1" and "Geekcreit 30 Pin" pins using a SSD1306 based OLED. Pins may vary on other ESP32 boards.
+Example connections for "Lolin32 Lite" pins using a SSD1306 based OLED. Pins may vary on other ESP32 boards.
 
 ![Wiring Diagram](images/wiring.png)
 
@@ -60,23 +60,12 @@ For 0.96" and 1.3" OLEDs using the SSD1306 chip in i2c mode.
 | --- | --- |
 | 3V3 | VCC |
 | GND | GND |
-| D21 | SDA |
-| D22 | SCK |
+| 23 | SDA |
+| 18 | SCK |
 
 #### SSD1309 OLED
 
-For 2.42" OLEDs using the SSD1309 chip in i2c mode. Note that most of these OLEDs require resistors to be moved for enabling the i2c mode.
-
-| ESP32 | OLED |
-| --- | --- |
-| 3V3 | VCC |
-| GND | GND |
-| D21 | SDA |
-| D22 | SCL |
-
-A capacitor of around 220-470 μF is needed between ESP32 3V3 and GND in order to avoid brownout during wlan startup when OLED is being active at the same time. This issue can be seen as a "Brownout detector was triggered" console message followed by a forced reset.
-
-Additionally, OLED RES needs to be connected to OLED VCC using a 10 kΩ resistor and to GND using a 10-100 μF capacitor.
+For 2.42" OLEDs using the SSD1309 chip in i2c mode, use the same wiring as for the SSD1306 OLED shown above. Note that most of these SSD1309 OLEDs require resistors to be moved for enabling the i2c mode. Additionally, a capacitor of around 220-470 μF is needed between ESP32 3V3 and GND in order to avoid brownout during wlan startup when OLED is being active at the same time. This issue can be seen as a "Brownout detector was triggered" console message followed by a forced reset. Also OLED RES needs to be connected to OLED VCC using a 10 kΩ resistor and to GND using a 10-100 μF capacitor:
 
 | OLED | component | OLED |
 | --- | --- | ---
@@ -120,11 +109,13 @@ If a Spotify device doesn't currently have playback active then the display shou
 
 ## Controls
 
-Left button controls play/pause/resume with short presses. A long press (>= 500 ms by default) will result in the currently playing track to be saved to the user library (equivalent for pressing the heart symbol in the normal Spotify interface).
+| | Left button | Right button |
+| --- | --- | --- |
+| active, short press | play / pause / resume | next track |
+| active, long press | save track | - |
+| standby | wake up and resume playback | wake up |
 
-Right button requests the next track to be started.
-
-Pressing left button during standby will wake up the display and try to resume playback. Pressing right button during standby only wakes up the display.
+Long press is >= 500 ms by default.
 
 ## Included 3rd party implementations
 
