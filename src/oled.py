@@ -20,12 +20,23 @@ class OLED:
         self.standby_x = 0
         self.standby_y = 0
 
+    def _mask_unsupported_chars(self, text):
+        result = []
+
+        for i in range(0, len(text)):
+            if 32 <= ord(text[i]) <= 126:
+                result.append(text[i])
+            else:
+                result.append('?')
+
+        return ''.join(result)
+
     def show(self, artist, title, progress = None, ticks = True, separator = True):
         self.oled.fill(0)
 
         y = 0
-        a = textwrap.wrap(artist, width = int(self.oled_width / 8), center = True)
-        t = textwrap.wrap(title, width = int(self.oled_width / 8), center = True)
+        a = textwrap.wrap(self._mask_unsupported_chars(artist.strip()), width = int(self.oled_width / 8), center = True)
+        t = textwrap.wrap(self._mask_unsupported_chars(title.strip()), width = int(self.oled_width / 8), center = True)
 
         if len(a) == 1 and len(a) + len(t) <= 4:
             y = 10
