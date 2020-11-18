@@ -15,7 +15,7 @@ class OLED:
         self.oled = ssd1306.SSD1306_I2C(self.oled_width, self.oled_height, self.i2c)
         self.oled.fill(0)
         self.oled.contrast(contrast)
-        self.oled.text("      ...      ", 0, 30)
+        self.oled.text("      ...      ", 4, 30)
         self.oled.show()
         self.standby_x = 0
         self.standby_y = 0
