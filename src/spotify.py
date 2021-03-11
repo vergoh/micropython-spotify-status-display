@@ -200,7 +200,12 @@ class Spotify:
         r = spotify_api.refresh_access_token(api_tokens, self.config['spotify']['client_id'], self.config['spotify']['client_secret'])
         self.oled.hide_corner_dot(self.config['api_request_dot_size'])
 
-        self._validate_api_reply("refresh", r, ok_status_list = [200])
+        warn_status_list = []
+        if 'timestamp' in api_tokens:
+            warn_status_list.append(0)
+
+        if not self._validate_api_reply("refresh", r, ok_status_list = [200], warn_status_list = warn_status_list):
+            return api_tokens
 
         print("refreshed api tokens received")
         new_api_tokens = r['json']
