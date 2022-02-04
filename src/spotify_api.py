@@ -55,7 +55,6 @@ def _spotify_api_request(method, url, data = None, headers = None, retry = True)
             ret['status_code'] = 0
             ret['json'] = {'exception': 1}
             ret['text'] = str(e)
-        pass
 
     if len(ret['json']) == 0:
         try:
