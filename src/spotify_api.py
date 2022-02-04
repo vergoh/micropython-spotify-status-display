@@ -2,6 +2,7 @@
 # Copyright (c) 2020 Teemu Toivola
 # https://github.com/vergoh/micropython-spotify-status-display
 
+import gc
 import time
 import socket
 import select
@@ -18,7 +19,9 @@ def _spotify_api_request(method, url, data = None, headers = None, retry = True)
     print("{} {}".format(method, url))
     try:
         r = requests.request(method, url, data = data, headers = headers)
-    except OSError:
+    except OSError as e:
+        print("OSError: {}".format(e))
+        ret['text'] = str(e)
         r = None
 
     if r is None or r.status_code < 200 or r.status_code >= 500:
@@ -26,6 +29,10 @@ def _spotify_api_request(method, url, data = None, headers = None, retry = True)
             if r is not None:
                 r.close()
                 del r
+            if r is None:
+                print("failed, retrying...")
+            else:
+                print("status {}, retrying...".format(r.status_code))
             time.sleep_ms(500)
             return _spotify_api_request(method, url, data = data, headers = headers, retry = False)
         else:
@@ -34,7 +41,20 @@ def _spotify_api_request(method, url, data = None, headers = None, retry = True)
     ret['status_code'] = r.status_code
     try:
         ret['json'] = r.json()
-    except:
+    except Exception as e:
+        if r.status_code == 200 and method == "GET":
+            print("json decoding failed: {}".format(e))
+            if retry:
+                if r is not None:
+                    r.close()
+                    del r
+                print("retrying...")
+                time.sleep_ms(500)
+                gc.collect()
+                return _spotify_api_request(method, url, data = data, headers = headers, retry = False)
+            ret['status_code'] = 0
+            ret['json'] = {'exception': 1}
+            ret['text'] = str(e)
         pass
 
     if len(ret['json']) == 0:

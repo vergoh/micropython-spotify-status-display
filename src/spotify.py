@@ -2,6 +2,7 @@
 # Copyright (c) 2020 Teemu Toivola
 # https://github.com/vergoh/micropython-spotify-status-display
 
+import gc
 import time
 import ujson
 import network
@@ -49,9 +50,13 @@ class Spotify:
             self.wlan_ap = network.WLAN(network.AP_IF)
             self.wlan_ap.active(False)
             self.wlan = network.WLAN(network.STA_IF)
-            self.wlan.active(True)
-            self.wlan.connect(self.config['wlan']['ssid'], self.config['wlan']['password'])
-            self.wlan.config(dhcp_hostname=self.config['wlan']['mdns'])
+            try:
+                self.wlan.active(True)
+                self.wlan.connect(self.config['wlan']['ssid'], self.config['wlan']['password'])
+                self.wlan.config(dhcp_hostname=self.config['wlan']['mdns'])
+            except Exception as e:
+                self.oled.show(e.__class__.__name__, str(e))
+                raise
             print("network configured")
         else:
             self.wlan = network.WLAN()
@@ -228,20 +233,20 @@ class Spotify:
         r = spotify_api.get_currently_playing(api_tokens)
         self.oled.hide_corner_dot(self.config['api_request_dot_size'])
 
-        self._validate_api_reply("playback", r, ok_status_list = [200, 204], warn_status_list = [0, 401, 403, 429])
+        if not self._validate_api_reply("playback", r, ok_status_list = [200, 204], warn_status_list = [0, 401, 403, 429]):
+            return {'warn_shown': 1}
 
-        print("playback status received")
+        print("playback status received: {}".format(r['status_code']))
 
-        if r['status_code'] == 200:
-            currently_playing = r['json']
-        else:
-            currently_playing = None
+        if r['status_code'] != 200:
+            return None
 
-        if currently_playing is not None:
-            if 'is_playing' not in currently_playing or currently_playing['is_playing'] is not True or 'item' not in currently_playing:
-                currently_playing = None
+        if 'is_playing' not in r['json'] or r['json']['is_playing'] is not True or 'item' not in r['json']:
+            if 'is_playing' not in r['json']:
+                print("missing content, status unknown: {}".format(r['json']))
+            return None
 
-        return currently_playing
+        return r['json']
 
     def _get_current_device_id(self, api_tokens):
         self.oled.show_corner_dot(self.config['api_request_dot_size'])
@@ -441,6 +446,9 @@ class Spotify:
         self._reset_button_presses()
 
         while True:
+            gc.collect()
+            gc.threshold(gc.mem_free() // 4 + gc.mem_alloc())
+
             self._wait_for_connection()
 
             if time.time() >= api_tokens['timestamp'] + api_tokens['expires_in'] - 30:
@@ -451,6 +459,8 @@ class Spotify:
             currently_playing = self._get_currently_playing(api_tokens)
 
             if currently_playing is not None:
+                if 'warn_shown' in currently_playing:
+                    continue
                 playing = True
                 last_playing = time.time()
                 if self.device_id is None:

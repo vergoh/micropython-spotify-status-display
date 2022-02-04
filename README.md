@@ -19,7 +19,8 @@ Micropython implementation for ESP32 using a small OLED display to show the "cur
 
 ## Requirements
 
-- ESP32 with [micropython](https://micropython.org/) 1.13 or later
+- ESP32 with [micropython](https://micropython.org/) 1.14 or later
+  - version 1.18 or later recommended
 - SSD1306 or SSD1309 compatible 128x64 pixel OLED display in i2c mode
   - verified
     - [0.96" SSD1306](https://www.google.com/search?q=128x64+oled+i2c+0.96+ssd1306)

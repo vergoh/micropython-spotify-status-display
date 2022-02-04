@@ -2,14 +2,14 @@
 # Copyright (c) 2020 Teemu Toivola
 # https://github.com/vergoh/micropython-spotify-status-display
 
-from machine import Pin, I2C
+from machine import Pin, SoftI2C
 import ssd1306
 import textwrap
 
 class OLED:
 
     def __init__(self, scl_pin = 22, sda_pin = 21, contrast = 127):
-        self.i2c = I2C(-1, scl = Pin(scl_pin), sda = Pin(sda_pin))
+        self.i2c = SoftI2C(scl = Pin(scl_pin), sda = Pin(sda_pin))
         self.oled_width = 128
         self.oled_height = 64
         self.oled = ssd1306.SSD1306_I2C(self.oled_width, self.oled_height, self.i2c)
