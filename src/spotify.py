@@ -162,7 +162,7 @@ class Spotify:
 
         self._reset_button_presses()
 
-    def _validate_api_reply(self, api_call_name, api_reply, ok_status_list = [], warn_status_list = [], raise_status_list = [], warn_duration_ms = 3000):
+    def _validate_api_reply(self, api_call_name, api_reply, ok_status_list = [], warn_status_list = [], raise_status_list = [], warn_duration_ms = 5000):
         if api_reply['status_code'] in ok_status_list:
             return True
 

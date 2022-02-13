@@ -26,13 +26,12 @@ def _spotify_api_request(method, url, data = None, headers = None, retry = True)
 
     if r is None or r.status_code < 200 or r.status_code >= 500:
         if retry:
-            if r is not None:
-                r.close()
-                del r
             if r is None:
                 print("failed, retrying...")
-            else:
+            elif r is not None:
                 print("status {}, retrying...".format(r.status_code))
+                r.close()
+                del r
             time.sleep_ms(500)
             return _spotify_api_request(method, url, data = data, headers = headers, retry = False)
         else:
