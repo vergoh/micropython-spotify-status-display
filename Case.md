@@ -13,6 +13,7 @@
 - 2 x M2 hex socket head cap screw, 6-8 mm
   - head cap is hidden under the case and can be anything available
 - 6 x M2 nut
+- 4 x 2x6 or 2x10 screw (metric, for lid)
 - single row 2.54 mm male pin header
   - 4 pins for buttons
   - 5 pins for OLED
@@ -29,7 +30,7 @@ Additionally some suitable tools, a soldering iron and access to a 3D printer is
 
 ## Printing
 
-Print [case.stl](stl/case.stl) using PLA or similar plastic. Use 0.1 - 0.2 mm layer height depending on wanted finish. The model doesn't need support when printed with the model front facing the bed as shown in the preview.
+Print [case.stl](stl/case.stl) and [lid.stl](stl/lid.stl) using PLA or similar plastic. Use 0.1 - 0.2 mm layer height depending on wanted finish. The case model doesn't need support when printed with the model front facing the bed as shown in the preview. The lid however should be rotated and printed flat.
 
 ## OLED I2C setup
 

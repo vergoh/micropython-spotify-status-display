@@ -15,7 +15,7 @@ Micropython implementation for ESP32 using a small OLED display to show the "cur
 - access token stored in device after initial login
 - screensaver for standby mode
 - self contained implementation
-- [custom 3D printable case](stl/case.stl)
+- [custom 3D printable case](stl/case.stl) with [lid](stl/lid.stl)
 
 ## Requirements
 
@@ -45,6 +45,7 @@ See also beginning of [Case.md](Case.md) for a full list of needed components fo
 
 - find and fix possible edge cases in api usage
 - async api requests (if possible)
+- optional buzzer
 
 ## Building it
 
