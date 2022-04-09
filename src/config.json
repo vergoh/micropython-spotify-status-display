@@ -11,6 +11,9 @@
 	"blank_oled_on_standby": false,
 	"long_press_duration_milliseconds": 500,
 	"api_request_dot_size": 1,
+	"use_buzzer": true,
+	"buzzer_frequency": 4000,
+	"buzzer_duty": 200,
 	"spotify": {
 		"client_id": "",
 		"client_secret": ""
@@ -20,7 +23,8 @@
 		"scl": 18,
 		"sda": 23,
 		"button_playpause": 17,
-		"button_next": 5
+		"button_next": 5,
+		"buzzer": 27
 	},
 	"wlan": {
 		"ssid": "",

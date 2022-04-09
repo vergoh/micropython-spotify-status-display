@@ -32,3 +32,10 @@ For 2.42" OLEDs using the SSD1309 chip in i2c mode, use the same wiring as for t
 | D5 | right button | GND |
 
 Button pins need to support internal pullups.
+
+## Piezo Buzzer (Optional)
+
+| ESP32 | Buzzer |
+| --- | --- |
+| 27 | VCC |
+| GND | GND |

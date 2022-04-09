@@ -13,6 +13,7 @@ from machine import Pin
 import oled
 import spotify_api
 from buttonpress_async import button_async
+from buzzer import buzzer
 
 class Spotify:
 
@@ -37,6 +38,10 @@ class Spotify:
         self.oled.show(self.name, "__init__", separator = False)
 
         self._validate_config()
+
+        if self.config['use_buzzer']:
+            self.buzzer = buzzer(Pin(self.config['pins']['buzzer'], Pin.OUT), frequency = self.config['buzzer_frequency'], duty = self.config['buzzer_duty'])
+            self.buzzer.buzz()
 
         if not self.config['spotify'].get('client_id') or not self.config['spotify'].get('client_secret'):
             self.oled.show(self.name, "client not configured", separator = False)
@@ -75,11 +80,11 @@ class Spotify:
         print("Connected at {} as {}".format(self.ip, self.config['wlan']['mdns']))
 
     def _validate_config(self):
-        boolean_entries = ['use_led', 'setup_network', 'enable_webrepl', 'show_progress_ticks', 'low_contrast_mode', 'blank_oled_on_standby']
-        integer_entries = ['contrast', 'status_poll_interval_seconds', 'standby_status_poll_interval_minutes', 'idle_standby_minutes', 'long_press_duration_milliseconds', 'api_request_dot_size']
+        boolean_entries = ['use_led', 'use_buzzer', 'setup_network', 'enable_webrepl', 'show_progress_ticks', 'low_contrast_mode', 'blank_oled_on_standby']
+        integer_entries = ['contrast', 'status_poll_interval_seconds', 'standby_status_poll_interval_minutes', 'idle_standby_minutes', 'long_press_duration_milliseconds', 'api_request_dot_size', 'buzzer_frequency', 'buzzer_duty']
         dict_entries = ['spotify', 'pins', 'wlan']
         spotify_entries = ['client_id', 'client_secret']
-        pin_entries = ['led', 'scl', 'sda', 'button_playpause', 'button_next']
+        pin_entries = ['led', 'scl', 'sda', 'button_playpause', 'button_next', 'buzzer']
         wlan_entries = ['ssid', 'password', 'mdns']
 
         for b in boolean_entries:
@@ -137,6 +142,8 @@ class Spotify:
 
         if self.button_playpause.was_pressed():
             print("play/pause button pressed")
+            if self.config['use_buzzer']:
+                self.buzzer.buzz()
             if playing:
                 if self.button_playpause.was_longpressed():
                     self.oled.show(self.name, "saving track", separator = False)
@@ -154,6 +161,8 @@ class Spotify:
 
         elif self.button_next.was_pressed():
             print("next button pressed")
+            if self.config['use_buzzer']:
+                self.buzzer.buzz()
             self.oled.show(self.name, "requesting next", separator = False)
             if playing:
                 self._next_playback(api_tokens)

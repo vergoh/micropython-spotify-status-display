@@ -13,6 +13,7 @@ Micropython implementation for ESP32 using a small OLED display to show the "cur
   - add current track to library
 - configurable poll interval and behaviour
 - access token stored in device after initial login
+- buzzer (optional) for confirming button presses
 - screensaver for standby mode
 - self contained implementation
 - [custom 3D printable case](stl/case.stl) with [lid](stl/lid.stl)
@@ -36,16 +37,15 @@ See also beginning of [Case.md](Case.md) for a full list of needed components fo
 
 ## Limitations
 
-- buttons don't react during api requests
+- buttons don't react during api requests / server communication
 - buttons require Spotify Premium due to api restrictions
-- default font shows correctly mainly us-ascii characters
+- default font supports mainly us-ascii characters
 - playback device isn't aware of the status display resulting in delayed status changes when the playback device is directly controlled
 
 ## TODO
 
 - find and fix possible edge cases in api usage
-- async api requests (if possible)
-- optional buzzer
+- async api requests / server communication (if possible)
 
 ## Building it
 
