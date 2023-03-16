@@ -6,7 +6,9 @@ Micropython implementation for ESP32 using a small OLED display to show the "cur
 
 ## Features
 
-- "currently playing" track shown with artist name and progress bar
+- "currently playing" information with progress bar
+  - artist + track
+  - show/podcast + episode
 - playback control
   - play/pause
   - next track

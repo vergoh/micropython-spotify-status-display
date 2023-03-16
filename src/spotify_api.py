@@ -88,7 +88,7 @@ def refresh_access_token(api_tokens, client_id, client_secret):
     return _spotify_api_request("POST", spotify_token_api_url, data = urlencode(reqdata), headers = headers)
 
 def get_currently_playing(api_tokens):
-    spotify_player_api_url = "{}/v1/me/player/currently-playing".format(spotify_api_base)
+    spotify_player_api_url = "{}/v1/me/player/currently-playing?additional_types=track,episode".format(spotify_api_base)
     headers = { 'Authorization': "Bearer {}".format(api_tokens['access_token']) }
 
     return _spotify_api_request("GET", spotify_player_api_url, headers = headers)

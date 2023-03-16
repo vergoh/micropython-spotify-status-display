@@ -340,7 +340,12 @@ class Spotify:
 
     async def _show_play_progress_for_seconds(self, cp, seconds):
         if 'progress_ms' not in cp or 'duration_ms' not in cp['item']:
-            self.oled.show(cp['item'].get('artists', [{}])[0].get('name'), cp['item'].get('name'))
+            if cp.get('currently_playing_type', '') == 'track':
+                self.oled.show(cp['item'].get('artists', [{}])[0].get('name', 'Unknown Artist'), cp['item'].get('name', 'Unknown Track'))
+            elif cp.get('currently_playing_type', '') == 'episode':
+                self.oled.show(cp['item'].get('show', {}).get('name', 'Unknown Podcast'), cp['item'].get('name', 'Unknown Episode'))
+            else:
+                self.oled.show("Unknown content", "")
             await asyncio.sleep(seconds)
         else:
             progress_start = time.time()
@@ -358,7 +363,17 @@ class Spotify:
                         break
                     progress = progress_ms / cp['item']['duration_ms'] * 100
 
-                self.oled.show(cp['item'].get('artists', [{}])[0].get('name'), cp['item'].get('name'), progress = progress, ticks = self.config['show_progress_ticks'])
+                playing_artist = "Unknown content"
+                playing_title = ""
+
+                if cp.get('currently_playing_type', '') == 'track':
+                    playing_artist = cp['item'].get('artists', [{}])[0].get('name', 'Unknown Artist')
+                    playing_title = cp['item'].get('name', 'Unknown Track')
+                elif cp.get('currently_playing_type', '') == 'episode':
+                    playing_artist = cp['item'].get('show', {}).get('name', 'Unknown Podcast')
+                    playing_title = cp['item'].get('name', 'Unknown Episode')
+
+                self.oled.show(playing_artist, playing_title, progress = progress, ticks = self.config['show_progress_ticks'])
                 if time.time() >= progress_start + seconds:
                     break
 
@@ -460,7 +475,7 @@ class Spotify:
 
             self._wait_for_connection()
 
-            if time.time() >= api_tokens['timestamp'] + api_tokens['expires_in'] - 30:
+            if 'expires_in' not in api_tokens or time.time() >= api_tokens['timestamp'] + api_tokens['expires_in'] - 30:
                 api_tokens = self._refresh_access_token(api_tokens)
 
             self._handle_buttons(api_tokens, playing)
