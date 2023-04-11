@@ -475,8 +475,11 @@ class Spotify:
 
             self._wait_for_connection()
 
-            if 'expires_in' not in api_tokens or time.time() >= api_tokens['timestamp'] + api_tokens['expires_in'] - 30:
+            if 'expires_in' not in api_tokens or 'access_token' not in api_tokens or time.time() >= api_tokens['timestamp'] + api_tokens['expires_in'] - 30:
                 api_tokens = self._refresh_access_token(api_tokens)
+                if 'expires_in' not in api_tokens or 'access_token' not in api_tokens:
+                    time.sleep_ms(1000)
+                    continue
 
             self._handle_buttons(api_tokens, playing)
 
