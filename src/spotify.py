@@ -172,6 +172,8 @@ class Spotify:
         self._reset_button_presses()
 
     def _validate_api_reply(self, api_call_name, api_reply, ok_status_list = [], warn_status_list = [], raise_status_list = [], warn_duration_ms = 5000):
+        print("{} status received: {}".format(api_call_name, api_reply['status_code']))
+
         if api_reply['status_code'] in ok_status_list:
             return True
 
@@ -242,10 +244,8 @@ class Spotify:
         r = spotify_api.get_currently_playing(api_tokens)
         self.oled.hide_corner_dot(self.config['api_request_dot_size'])
 
-        if not self._validate_api_reply("playback", r, ok_status_list = [200, 204], warn_status_list = [0, 401, 403, 429]):
+        if not self._validate_api_reply("currently-playing", r, ok_status_list = [200, 202, 204], warn_status_list = [0, 401, 403, 429]):
             return {'warn_shown': 1}
-
-        print("playback status received: {}".format(r['status_code']))
 
         if r['status_code'] != 200:
             return None
@@ -262,7 +262,7 @@ class Spotify:
         r = spotify_api.get_current_device_id(api_tokens)
         self.oled.hide_corner_dot(self.config['api_request_dot_size'])
 
-        self._validate_api_reply("player", r, ok_status_list = [200], warn_status_list = [401, 403, 429])
+        self._validate_api_reply("player", r, ok_status_list = [200], warn_status_list = [202, 204, 401, 403, 429])
 
         print("player received")
 
@@ -282,7 +282,7 @@ class Spotify:
         r = spotify_api.pause_playback(api_tokens)
         self.oled.hide_corner_dot(self.config['api_request_dot_size'])
 
-        self._validate_api_reply("pause", r, ok_status_list = [204], warn_status_list = [0, 401, 403, 429])
+        self._validate_api_reply("pause", r, ok_status_list = [202, 204], warn_status_list = [0, 401, 403, 429])
 
         print("playback paused")
 
@@ -291,7 +291,7 @@ class Spotify:
         r = spotify_api.resume_playback(api_tokens, device_id = device_id)
         self.oled.hide_corner_dot(self.config['api_request_dot_size'])
 
-        self._validate_api_reply("resume", r, ok_status_list = [204, 404], warn_status_list = [403])
+        self._validate_api_reply("resume", r, ok_status_list = [202, 204, 404], warn_status_list = [403])
 
         if r['status_code'] == 404:
             print("no active device found")
@@ -305,7 +305,7 @@ class Spotify:
         r = spotify_api.next_playback(api_tokens, device_id = device_id)
         self.oled.hide_corner_dot(self.config['api_request_dot_size'])
 
-        self._validate_api_reply("next", r, ok_status_list = [204, 404], warn_status_list = [0, 401, 403, 429])
+        self._validate_api_reply("next", r, ok_status_list = [202, 204, 404], warn_status_list = [0, 401, 403, 429])
 
         if r['status_code'] == 404:
             print("no active device found")
@@ -319,7 +319,7 @@ class Spotify:
         r = spotify_api.save_track(api_tokens, track_id)
         self.oled.hide_corner_dot(self.config['api_request_dot_size'])
 
-        self._validate_api_reply("save track", r, ok_status_list = [200], warn_status_list = [0, 401, 403, 429])
+        self._validate_api_reply("save track", r, ok_status_list = [200, 202, 204], warn_status_list = [0, 401, 403, 429])
 
         print("track saved")
 
