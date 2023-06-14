@@ -8,6 +8,7 @@ import ujson
 import network
 import uasyncio as asyncio
 from machine import Pin
+from micropython import const, mem_info
 
 # imports from additional files
 import oled
@@ -15,12 +16,13 @@ import spotify_api
 from buttonpress_async import button_async
 from buzzer import buzzer
 
+_app_name = const("Spotify status")
+
 class Spotify:
 
     def __init__(self):
-        self.name = "Spotify status"
         self.device_id = None
-
+        self._set_memory_debug()
         self.config = {}
         with open('config.json', 'r') as f:
             self.config = ujson.load(f)
@@ -35,7 +37,7 @@ class Spotify:
         self.oled = oled.OLED(scl_pin = self.config['pins']['scl'], sda_pin = self.config['pins']['sda'], contrast = self.config['contrast'])
         if self.config['low_contrast_mode']:
             self.oled.oled.precharge(0x22)
-        self.oled.show(self.name, "__init__", separator = False)
+        self.oled.show(_app_name, "__init__", separator = False)
 
         self._validate_config()
 
@@ -44,7 +46,7 @@ class Spotify:
             self.buzzer.buzz()
 
         if not self.config['spotify'].get('client_id') or not self.config['spotify'].get('client_secret'):
-            self.oled.show(self.name, "client not configured", separator = False)
+            self.oled.show(_app_name, "client not configured", separator = False)
             raise RuntimeError("client_id and/or client_secret not configured")
 
         self.button_playpause = button_async(Pin(self.config['pins']['button_playpause'], Pin.IN, Pin.PULL_UP), long_press_duration_ms = self.config['long_press_duration_milliseconds'])
@@ -61,7 +63,12 @@ class Spotify:
                 self.wlan.config(dhcp_hostname=self.config['wlan']['mdns'])
             except Exception as e:
                 self.oled.show(e.__class__.__name__, str(e))
-                raise
+                if str(e) == "Wifi Internal Error":
+                    time.sleep(3)
+                    import machine
+                    machine.reset()
+                else:
+                    raise
             print("network configured")
         else:
             self.wlan = network.WLAN()
@@ -76,38 +83,53 @@ class Spotify:
         self.ip = self.wlan.ifconfig()[0]
         self.redirect_uri = "http://{}.local/callback/".format(self.config['wlan']['mdns'])
 
-        self.oled.show(self.name, "__init__ connected {}".format(self.ip), separator = False)
-        print("Connected at {} as {}".format(self.ip, self.config['wlan']['mdns']))
+        self.oled.show(_app_name, "__init__ connected {}".format(self.ip), separator = False)
+        print("connected at {} as {}".format(self.ip, self.config['wlan']['mdns']))
+
+    def _set_memory_debug(self):
+        import os
+        self.memdebug = False
+
+        try:
+            if os.stat("memdebug") != 0:
+                self.memdebug = True
+        except Exception:
+            pass
+
+        if self.memdebug:
+            print("memory debug enabled")
+        else:
+            print("no \"memdebug\" file or directory found, memory debug output disabled")
 
     def _validate_config(self):
-        boolean_entries = ['use_led', 'use_buzzer', 'setup_network', 'enable_webrepl', 'show_progress_ticks', 'low_contrast_mode', 'blank_oled_on_standby']
-        integer_entries = ['contrast', 'status_poll_interval_seconds', 'standby_status_poll_interval_minutes', 'idle_standby_minutes', 'long_press_duration_milliseconds', 'api_request_dot_size', 'buzzer_frequency', 'buzzer_duty']
-        dict_entries = ['spotify', 'pins', 'wlan']
-        spotify_entries = ['client_id', 'client_secret']
-        pin_entries = ['led', 'scl', 'sda', 'button_playpause', 'button_next', 'buzzer']
-        wlan_entries = ['ssid', 'password', 'mdns']
+        boolean_entries = const("use_led,use_buzzer,setup_network,enable_webrepl,show_progress_ticks,low_contrast_mode,blank_oled_on_standby")
+        integer_entries = const("contrast,status_poll_interval_seconds,standby_status_poll_interval_minutes,idle_standby_minutes,long_press_duration_milliseconds,api_request_dot_size,buzzer_frequency,buzzer_duty")
+        dict_entries = const("spotify,pins,wlan")
+        spotify_entries = const("client_id,client_secret")
+        pin_entries = const("led,scl,sda,button_playpause,button_next,buzzer")
+        wlan_entries = const("ssid,password,mdns")
 
-        for b in boolean_entries:
+        for b in boolean_entries.split(','):
             if b not in self.config or type(self.config[b]) is not bool:
                 self._raise_config_error("\"{}\" not configured or not boolean".format(b))
 
-        for i in integer_entries:
+        for i in integer_entries.split(','):
             if i not in self.config or type(self.config[i]) is not int:
                 self._raise_config_error("\"{}\" not configured or not integer".format(i))
 
-        for d in dict_entries:
+        for d in dict_entries.split(','):
             if d not in self.config or type(self.config[d]) is not dict:
                 self._raise_config_error("\"{}\" not configured or not dict".format(d))
 
-        for s in spotify_entries:
+        for s in spotify_entries.split(','):
             if s not in self.config['spotify'] or self.config['spotify'][s] is None or len(self.config['spotify'][s]) < 16:
                 self._raise_config_error("\"{}\" not configured or is invalid".format(s))
 
-        for p in pin_entries:
+        for p in pin_entries.split(','):
             if p not in self.config['pins'] or type(self.config['pins'][p]) is not int:
                 self._raise_config_error("\"{}\" not configured or is invalid".format(p))
 
-        for w in wlan_entries:
+        for w in wlan_entries.split(','):
             if w not in self.config['wlan'] or self.config['wlan'][w] is None or len(self.config['wlan'][w]) < 1:
                 self._raise_config_error("\"{}\" not configured or is invalid".format(w))
 
@@ -119,9 +141,9 @@ class Spotify:
         was_connected = self.wlan.isconnected()
 
         while not self.wlan.isconnected():
-            self.oled.show(self.name, "waiting for connection", separator = False)
+            self.oled.show(_app_name, "waiting for connection", separator = False)
             time.sleep_ms(500)
-            self.oled.show(self.name, "waiting for connection", separator = True)
+            self.oled.show(_app_name, "waiting for connection", separator = True)
             time.sleep_ms(500)
 
         if not was_connected:
@@ -146,24 +168,24 @@ class Spotify:
                 self.buzzer.buzz()
             if playing:
                 if self.button_playpause.was_longpressed():
-                    self.oled.show(self.name, "saving track", separator = False)
+                    self.oled.show(_app_name, "saving track", separator = False)
                     currently_playing = self._get_currently_playing(api_tokens)
                     if currently_playing is not None:
                         if 'item' in currently_playing and 'id' in currently_playing['item']:
                             self._save_track(api_tokens, currently_playing['item'].get('id'))
                 else:
-                    self.oled.show(self.name, "pausing playback", separator = False)
+                    self.oled.show(_app_name, "pausing playback", separator = False)
                     self.device_id = self._get_current_device_id(api_tokens)
                     self._pause_playback(api_tokens)
             else:
-                self.oled.show(self.name, "resuming playback", separator = False)
+                self.oled.show(_app_name, "resuming playback", separator = False)
                 self._resume_playback(api_tokens, self.device_id)
 
         elif self.button_next.was_pressed():
             print("next button pressed")
             if self.config['use_buzzer']:
                 self.buzzer.buzz()
-            self.oled.show(self.name, "requesting next", separator = False)
+            self.oled.show(_app_name, "requesting next", separator = False)
             if playing:
                 self._next_playback(api_tokens)
             else:
@@ -180,16 +202,16 @@ class Spotify:
         if api_reply['status_code'] in warn_status_list:
             warning_text = "{} api {}: {}".format(api_call_name, api_reply['status_code'], api_reply['text'])
             print(warning_text)
-            self.oled.show(self.name, warning_text, separator = False)
+            self.oled.show(_app_name, warning_text, separator = False)
             time.sleep_ms(warn_duration_ms)
             return False
 
         if len(raise_status_list) == 0 or api_reply['status_code'] in raise_status_list:
-            self.oled.show(self.name, "{} api error {}".format(api_call_name, api_reply['status_code']), separator = False)
-            raise RuntimeError("Error {} - {}".format(api_reply['status_code'], api_reply['text']))
+            self.oled.show(_app_name, "{} api error {}".format(api_call_name, api_reply['status_code']), separator = False)
+            raise RuntimeError("{} api error {} - {}".format(api_call_name, api_reply['status_code'], api_reply['text']))
 
-        self.oled.show(self.name, "{} api unhandled error {}".format(api_call_name, api_reply['status_code']), separator = False)
-        raise RuntimeError("Error unhandled status_code {} - {}".format(api_reply['status_code'], api_reply['text']))
+        self.oled.show(_app_name, "{} api unhandled error {}".format(api_call_name, api_reply['status_code']), separator = False)
+        raise RuntimeError("{} api unhandled status_code {} - {}".format(api_call_name, api_reply['status_code'], api_reply['text']))
 
     def _get_api_tokens(self, authorization_code):
         self.oled.show_corner_dot(self.config['api_request_dot_size'])
@@ -244,7 +266,7 @@ class Spotify:
         r = spotify_api.get_currently_playing(api_tokens)
         self.oled.hide_corner_dot(self.config['api_request_dot_size'])
 
-        if not self._validate_api_reply("currently-playing", r, ok_status_list = [200, 202, 204], warn_status_list = [0, 401, 403, 429]):
+        if not self._validate_api_reply("c-playing", r, ok_status_list = [200, 202, 204], warn_status_list = [0, 401, 403, 429]):
             return {'warn_shown': 1}
 
         if r['status_code'] != 200:
@@ -295,7 +317,7 @@ class Spotify:
 
         if r['status_code'] == 404:
             print("no active device found")
-            self.oled.show(self.name, "no active device found", separator = False)
+            self.oled.show(_app_name, "no active device found", separator = False)
             time.sleep(3)
         else:
             print("playback resuming")
@@ -309,7 +331,7 @@ class Spotify:
 
         if r['status_code'] == 404:
             print("no active device found")
-            self.oled.show(self.name, "no active device found", separator = False)
+            self.oled.show(_app_name, "no active device found", separator = False)
             time.sleep(3)
         else:
             print("playback next")
@@ -324,19 +346,24 @@ class Spotify:
         print("track saved")
 
     def _initial_token_request(self):
+        import spotify_auth
+        import machine
+
         self.oled.show("Login", "http:// {}.local".format(self.config['wlan']['mdns']), separator = False)
-        authorization_code = spotify_api.get_authorization_code(self.config['spotify']['client_id'], self.redirect_uri, self.ip, self.config['wlan']['mdns'])
+        authorization_code = spotify_auth.get_authorization_code(self.config['spotify']['client_id'], self.redirect_uri, self.ip, self.config['wlan']['mdns'])
 
         if authorization_code == None:
-            self.oled.show(self.name, "get_auth_code() failed", separator = False)
+            self.oled.show(_app_name, "get_auth_code() failed", separator = False)
             raise RuntimeError("get_auth_code() failed")
 
-        self.oled.show(self.name, "authorized", separator = False)
+        self.oled.show(_app_name, "authorized", separator = False)
         print("authorization_code content: {}".format(authorization_code))
 
-        api_tokens = self._get_api_tokens(authorization_code)
+        self._get_api_tokens(authorization_code)
 
-        return api_tokens
+        self.oled.show(_app_name, "authorized, rebooting", separator = False)
+        time.sleep(2)
+        machine.reset()
 
     async def _show_play_progress_for_seconds(self, cp, seconds):
         if 'progress_ms' not in cp or 'duration_ms' not in cp['item']:
@@ -422,7 +449,7 @@ class Spotify:
         if button_pressed:
             if not self.button_playpause.was_pressed():
                 self._reset_button_presses()
-            self.oled.show(self.name, "resuming operations", separator = False)
+            self.oled.show(_app_name, "resuming operations", separator = False)
             return True
         else:
             return False
@@ -446,7 +473,7 @@ class Spotify:
         return False
 
     async def _looper(self):
-        self.oled.show("Spotify status", "start", separator = False)
+        self.oled.show(_app_name, "start", separator = False)
 
         api_tokens = None
 
@@ -456,13 +483,13 @@ class Spotify:
             refresh_token_file = None
 
         if refresh_token_file is None:
-            api_tokens = self._initial_token_request()
+            self._initial_token_request()
         else:
             refresh_token = refresh_token_file.readline().strip()
             refresh_token_file.close()
             api_tokens = self._refresh_access_token({ 'refresh_token': refresh_token })
 
-        self.oled.show(self.name, "tokenized", separator = False)
+        self.oled.show(_app_name, "tokenized", separator = False)
         print("api_tokens content: {}".format(api_tokens))
 
         playing = False
@@ -472,6 +499,8 @@ class Spotify:
         while True:
             gc.collect()
             gc.threshold(gc.mem_free() // 4 + gc.mem_alloc())
+            if self.memdebug:
+                mem_info()
 
             self._wait_for_connection()
 
@@ -502,8 +531,6 @@ class Spotify:
                     if await self._standby():
                         last_playing = time.time()
                     continue
-
-        print("Loop ended")
 
     def start(self):
         loop = asyncio.get_event_loop()

@@ -1,6 +1,6 @@
 # micropython-spotify-status-display
 
-Micropython implementation for ESP32 using a small OLED display to show the "currently playing" information of a Spotify playback device. Optionally two buttons can be added for controlling the playback device. For normal usability, having the buttons is recommended.
+MicroPython implementation for ESP32 using a small OLED display to show the "currently playing" information of a Spotify playback device. Optionally two buttons can be added for controlling the playback device. For normal usability, having the buttons is recommended.
 
 ![2.42" OLED in 3D printed case](images/2_42inch_oled_in_case.jpg)
 
@@ -22,7 +22,7 @@ Micropython implementation for ESP32 using a small OLED display to show the "cur
 
 ## Requirements
 
-- ESP32 with [micropython](https://micropython.org/) 1.14 or later
+- ESP32 with [MicroPython](https://micropython.org/) 1.14 or later
   - version 1.18 or later recommended
 - SSD1306 or SSD1309 compatible 128x64 pixel OLED display in i2c mode
   - verified
@@ -51,8 +51,8 @@ See also beginning of [Case.md](Case.md) for a full list of needed components fo
 
 ## Building it
 
-- [3D printed case build](Case.md) or [DIY wiring](Wiring.md)
-- [Configuration](Configuration.md)
+- [3D printed case build](Case.md) or [DIY wiring](Wiring.md) explains the hardware setup
+- [Configuration](Configuration.md) contains the install instructions
 
 ## Controls
 

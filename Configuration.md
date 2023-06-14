@@ -19,7 +19,14 @@
 
 ## Send implementation and config to device
 
-1. Using a serial connection to micropython command line, `put` the content of `src` directory to the root of the device
+1. Transfer the implementation using a serial connection with MicroPython command line
+   - **Option 1** - direct source files, higher memory usage:
+      1. With MicroPython command line, `put` the content of `src` directory to the root of the device
+   - **Option 2** - precompiled binaries, lower memory usage but requires extra step:
+      1. With `mpy-cross` installed using `pip`, run `make` to compile the binaries
+         - The used `mpy-cross` version needs to match used MicroPython release, see [MicroPython documentation](https://docs.micropython.org/en/latest/reference/mpyfiles.html#versioning-and-compatibility-of-mpy-files) for version compatibility details
+      2. With MicroPython command line, `put` the content of `target` directory to the root of the device
+         - Possible previously installed `.py` files need to be removed before this step when upgrading
 2. Start `repl` and soft reset the device with ctrl-d
 3. Fix any possible configuration errors based on shown output
 4. Login to Spotify using the provided url and accept requested permissions
