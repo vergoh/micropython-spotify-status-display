@@ -34,7 +34,7 @@ class button_async():
             while self.pin.value() == 0:
                 await asyncio.sleep_ms(10)
             self._pressed = False
-            self._press_duration_ms = time.ticks_ms() - press_start_time_ms
+            self._press_duration_ms = time.ticks_diff(time.ticks_ms(), press_start_time_ms)
 
             await asyncio.sleep_ms(DEBOUNCE)
 

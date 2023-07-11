@@ -407,13 +407,13 @@ class Spotify:
                 if await self._wait_for_button_press_ms(1000):
                     break
 
-                progress_ms += time.ticks_ms() - interval_begins
+                progress_ms += time.ticks_diff(time.ticks_ms(), interval_begins)
 
     async def _wait_for_button_press_ms(self, milliseconds):
         interval_begins = time.ticks_ms()
         button_pressed = self._check_button_presses()
 
-        while not button_pressed and time.ticks_ms() - interval_begins < milliseconds:
+        while not button_pressed and time.ticks_diff(time.ticks_ms(), interval_begins) < milliseconds:
             await asyncio.sleep_ms(50)
             button_pressed = self._check_button_presses()
 
@@ -455,9 +455,9 @@ class Spotify:
             return False
 
     async def _start_standby(self, last_playing):
-        loop_begins = time.ticks_ms()
+        loop_begins = time.time()
 
-        while loop_begins + (self.config['status_poll_interval_seconds'] - 1) * 1000 > time.ticks_ms():
+        while loop_begins + (self.config['status_poll_interval_seconds'] - 1) > time.time():
 
             standby_time = last_playing + self.config['idle_standby_minutes'] * 60
             progress = (standby_time - time.time()) / (self.config['idle_standby_minutes'] * 60) * 100
