@@ -4,7 +4,7 @@
 
 from machine import Pin, SoftI2C
 import ssd1306
-import textwrap
+import textutils
 
 class OLED:
 
@@ -19,6 +19,8 @@ class OLED:
         self.oled.show()
         self.standby_x = 0
         self.standby_y = 0
+        self.status_dot = False
+        self.status_dot_size = 1
 
     def _replace_chars(self, text):
         result = []
@@ -52,9 +54,14 @@ class OLED:
     def show(self, artist, title, progress = None, ticks = True, separator = True):
         self.oled.fill(0)
 
+        if self.status_dot:
+            for x in range(self.status_dot_size):
+                for y in range(self.status_dot_size):
+                    self.oled.pixel(x, y, 1)
+
         y = 0
-        a = textwrap.wrap(self._replace_chars(artist.strip()), width = int(self.oled_width / 8), center = True)
-        t = textwrap.wrap(self._replace_chars(title.strip()), width = int(self.oled_width / 8), center = True)
+        a = textutils.wrap(self._replace_chars(artist.strip()), width = int(self.oled_width / 8), center = True)
+        t = textutils.wrap(self._replace_chars(title.strip()), width = int(self.oled_width / 8), center = True)
 
         if len(a) == 1 and len(a) + len(t) <= 4:
             y = 10
@@ -133,6 +140,13 @@ class OLED:
 
     def hide_corner_dot(self, size = 1):
         self._corner_dot(0, size = size)
+
+    def enable_status_dot(self, size = 1):
+        self.status_dot = True
+        self.status_dot_size = size
+
+    def disable_status_dot(self):
+        self.status_dot = False
 
     def clear(self):
         self.oled.fill(0)

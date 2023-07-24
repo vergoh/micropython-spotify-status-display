@@ -22,6 +22,7 @@ class Spotify:
 
     def __init__(self):
         self.device_id = None
+        self.pause_after_current = False
         self._set_memory_debug()
         self.config = {}
         with open('config.json', 'r') as f:
@@ -185,10 +186,21 @@ class Spotify:
             print("next button pressed")
             if self.config['use_buzzer']:
                 self.buzzer.buzz()
-            self.oled.show(_app_name, "requesting next", separator = False)
             if playing:
-                self._next_playback(api_tokens)
+                if self.button_next.was_longpressed():
+                    if self.pause_after_current:
+                        self.oled.disable_status_dot()
+                        self.oled.show(_app_name, "not pausing after current", separator = False)
+                        self.pause_after_current = False
+                    else:
+                        self.oled.enable_status_dot(self.config['api_request_dot_size'])
+                        self.oled.show(_app_name, "pausing after current", separator = False)
+                        self.pause_after_current = True
+                else:
+                    self.oled.show(_app_name, "requesting next", separator = False)
+                    self._next_playback(api_tokens)
             else:
+                self.oled.show(_app_name, "requesting next", separator = False)
                 self._next_playback(api_tokens, self.device_id)
 
         self._reset_button_presses()
@@ -365,7 +377,7 @@ class Spotify:
         time.sleep(2)
         machine.reset()
 
-    async def _show_play_progress_for_seconds(self, cp, seconds):
+    async def _show_play_progress_for_seconds(self, api_tokens, cp, seconds):
         if 'progress_ms' not in cp or 'duration_ms' not in cp['item']:
             if cp.get('currently_playing_type', '') == 'track':
                 self.oled.show(cp['item'].get('artists', [{}])[0].get('name', 'Unknown Artist'), cp['item'].get('name', 'Unknown Track'))
@@ -386,6 +398,13 @@ class Spotify:
                 interval_begins = time.ticks_ms()
 
                 if progress is not None:
+                    # compared remaining playback time needs to be longer than the 1000 ms loop interval and some approximation
+                    # of the time it takes for the Spotify API call to get executed from display to Spotify server and
+                    # then from Spotify server to playback client, the API doesn't directly support "pause after current",
+                    # pausing early rather than late appears to be the better option
+                    if self.pause_after_current and cp['item']['duration_ms'] - progress_ms <= 2000:
+                        self._pause_playback(api_tokens)
+                        break
                     if progress_ms > cp['item']['duration_ms']:
                         break
                     progress = progress_ms / cp['item']['duration_ms'] * 100
@@ -417,10 +436,7 @@ class Spotify:
             await asyncio.sleep_ms(50)
             button_pressed = self._check_button_presses()
 
-        if button_pressed:
-            return True
-        else:
-            return False
+        return button_pressed
 
     async def _standby(self):
         print("standby")
@@ -523,9 +539,11 @@ class Spotify:
                     self.device_id = self._get_current_device_id(api_tokens)
             else:
                 playing = False
+                self.pause_after_current = False
+                self.oled.disable_status_dot()
 
             if playing:
-                await self._show_play_progress_for_seconds(currently_playing, self.config['status_poll_interval_seconds'])
+                await self._show_play_progress_for_seconds(api_tokens, currently_playing, self.config['status_poll_interval_seconds'])
             else:
                 if await self._start_standby(last_playing):
                     if await self._standby():

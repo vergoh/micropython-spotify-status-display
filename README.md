@@ -1,6 +1,6 @@
 # micropython-spotify-status-display
 
-MicroPython implementation for ESP32 using a small OLED display to show the "currently playing" information of a Spotify playback device. Optionally two buttons can be added for controlling the playback device. For normal usability, having the buttons is recommended.
+MicroPython implementation for ESP32 using a small OLED display to show the "currently playing" information of a Spotify playback device. Two buttons can optionally be added for controlling the playback device. For intended usability, having the buttons is highly recommended.
 
 ![2.42" OLED in 3D printed case](images/2_42inch_oled_in_case.jpg)
 
@@ -10,8 +10,9 @@ MicroPython implementation for ESP32 using a small OLED display to show the "cur
   - artist + track
   - show/podcast + episode
 - playback control
-  - play/pause
+  - play / pause
   - next track
+  - pause after current track
   - add current track to library
 - configurable poll interval and behaviour
 - access token stored in device after initial login
@@ -33,7 +34,8 @@ MicroPython implementation for ESP32 using a small OLED display to show the "cur
   - not verified
     - [1.3" SH1106](https://www.google.com/search?q=128x64+oled+i2c+1.3+sh1106)
 - wlan connectivity
-- Spotify account, Premium needed for playback control
+- Spotify account
+  - Premium needed for playback control
 
 See also beginning of [Case.md](Case.md) for a full list of needed components for building the cased solution shown above.
 
@@ -42,11 +44,12 @@ See also beginning of [Case.md](Case.md) for a full list of needed components fo
 - buttons don't react during api requests / server communication
 - buttons require Spotify Premium due to api restrictions
 - default font supports mainly us-ascii characters
+  - unsupported western characters are however automatically mapped to closest us-ascii equivalents
 - playback device isn't aware of the status display resulting in delayed status changes when the playback device is directly controlled
 
 ## TODO
 
-- find and fix possible edge cases in api usage
+- better handling of rare cases of `ECONNABORTED` followed with `EHOSTUNREACH` which gets displayed
 - async api requests / server communication (if possible)
 
 ## Building it
@@ -59,7 +62,7 @@ See also beginning of [Case.md](Case.md) for a full list of needed components fo
 | | Left button | Right button |
 | --- | --- | --- |
 | active, short press | play / pause / resume | next track |
-| active, long press | save track | - |
+| active, long press | save track | pause after current track |
 | standby | wake up and resume playback | wake up |
 
 Long press is >= 500 ms by default.

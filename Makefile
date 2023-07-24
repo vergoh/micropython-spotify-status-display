@@ -1,4 +1,4 @@
-TARGETS = target/main.py target/buttonpress_async.mpy target/buzzer.mpy target/helpers.mpy target/oled.mpy target/spotify_api.mpy target/spotify_auth.mpy target/spotify.mpy target/ssd1306.mpy target/textwrap.mpy target/uurequests.mpy
+TARGETS = target/main.py target/buttonpress_async.mpy target/buzzer.mpy target/helpers.mpy target/oled.mpy target/spotify_api.mpy target/spotify_auth.mpy target/spotify.mpy target/ssd1306.mpy target/textutils.mpy target/uurequests.mpy
 
 default: mpy
 
