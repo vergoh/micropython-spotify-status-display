@@ -8,9 +8,10 @@ import uasyncio as asyncio
 DEBOUNCE = 30
 
 class button_async():
-    def __init__(self, buttonpin = None, long_press_duration_ms = 1000):
+    def __init__(self, buttonpin = None, long_press_duration_ms = 1000, buzzer = None):
         self.pin = buttonpin
         self.long_press_duration_ms = long_press_duration_ms
+        self._buzzer = buzzer
         self._pressed = False
         self._was_pressed = False
         self._press_duration_ms = 0
@@ -25,13 +26,17 @@ class button_async():
 
             press_start_time_ms = time.ticks_ms()
 
+            self._pressed = True
+            if self._buzzer is not None:
+                self._buzzer.buzz()
+
             await asyncio.sleep_ms(DEBOUNCE)
 
-            if self.pin.value() == 1:
-                continue
-
-            self._pressed = True
+            long_press_buzzed = False
             while self.pin.value() == 0:
+                if self._buzzer is not None and long_press_buzzed is False and time.ticks_diff(time.ticks_ms(), press_start_time_ms) >= self.long_press_duration_ms:
+                    self._buzzer.buzz()
+                    long_press_buzzed = True
                 await asyncio.sleep_ms(10)
             self._pressed = False
             self._press_duration_ms = time.ticks_diff(time.ticks_ms(), press_start_time_ms)

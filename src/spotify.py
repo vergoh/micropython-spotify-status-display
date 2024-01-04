@@ -45,13 +45,15 @@ class Spotify:
         if self.config['use_buzzer']:
             self.buzzer = buzzer(Pin(self.config['pins']['buzzer'], Pin.OUT), frequency = self.config['buzzer_frequency'], duty = self.config['buzzer_duty'])
             self.buzzer.buzz()
+        else:
+            self.buzzer = None
 
         if not self.config['spotify'].get('client_id') or not self.config['spotify'].get('client_secret'):
             self.oled.show(_app_name, "client not configured", separator = False)
             raise RuntimeError("client_id and/or client_secret not configured")
 
-        self.button_playpause = button_async(Pin(self.config['pins']['button_playpause'], Pin.IN, Pin.PULL_UP), long_press_duration_ms = self.config['long_press_duration_milliseconds'])
-        self.button_next = button_async(Pin(self.config['pins']['button_next'], Pin.IN, Pin.PULL_UP), long_press_duration_ms = self.config['long_press_duration_milliseconds'])
+        self.button_playpause = button_async(Pin(self.config['pins']['button_playpause'], Pin.IN, Pin.PULL_UP), long_press_duration_ms = self.config['long_press_duration_milliseconds'], buzzer = self.buzzer)
+        self.button_next = button_async(Pin(self.config['pins']['button_next'], Pin.IN, Pin.PULL_UP), long_press_duration_ms = self.config['long_press_duration_milliseconds'], buzzer = self.buzzer)
         print("buttons enabled")
 
         if self.config['setup_network']:
@@ -165,8 +167,6 @@ class Spotify:
 
         if self.button_playpause.was_pressed():
             print("play/pause button pressed")
-            if self.config['use_buzzer']:
-                self.buzzer.buzz()
             if playing:
                 if self.button_playpause.was_longpressed():
                     self.oled.show(_app_name, "saving track", separator = False)
@@ -184,8 +184,6 @@ class Spotify:
 
         elif self.button_next.was_pressed():
             print("next button pressed")
-            if self.config['use_buzzer']:
-                self.buzzer.buzz()
             if playing:
                 if self.button_next.was_longpressed():
                     if self.pause_after_current:
