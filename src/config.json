@@ -2,6 +2,7 @@
 	"use_led": false,
 	"setup_network": true,
 	"enable_webrepl": false,
+	"use_display": true,
 	"show_progress_ticks": true,
 	"contrast": 127,
 	"low_contrast_mode": false,

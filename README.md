@@ -9,7 +9,7 @@ MicroPython implementation for ESP32 using a small OLED display to show the "cur
 - "currently playing" information with progress bar
   - artist + track
   - show/podcast + episode
-- playback control
+- playback control (optional)
   - play / pause
   - next track
   - pause after current track
@@ -26,6 +26,7 @@ MicroPython implementation for ESP32 using a small OLED display to show the "cur
 - ESP32 with [MicroPython](https://micropython.org/) 1.14 or later
   - version 1.18 or later recommended
 - SSD1306 or SSD1309 compatible 128x64 pixel OLED display in i2c mode
+  - optional if buttons are only needed / used
   - verified
     - [0.96" SSD1306](https://www.google.com/search?q=128x64+oled+i2c+0.96+ssd1306)
     - [2.42" SSD1309](https://www.google.com/search?q=128x64+oled+i2c+2.42+ssd1309) (recommended)
@@ -36,6 +37,8 @@ MicroPython implementation for ESP32 using a small OLED display to show the "cur
 - wlan connectivity
 - Spotify account
   - Premium needed for playback control
+- control buttons (optional)
+- buzzer (optional)
 
 See also beginning of [Case.md](Case.md) for a full list of needed components for building the cased solution shown above.
 

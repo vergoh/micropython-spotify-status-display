@@ -35,9 +35,12 @@ class Spotify:
                 time.sleep_ms(100)
             self.led.value(0)
 
-        self.oled = oled.OLED(scl_pin = self.config['pins']['scl'], sda_pin = self.config['pins']['sda'], contrast = self.config['contrast'])
-        if self.config['low_contrast_mode']:
-            self.oled.oled.precharge(0x22)
+        if self.config['use_display']:
+            self.oled = oled.OLED(scl_pin = self.config['pins']['scl'], sda_pin = self.config['pins']['sda'], contrast = self.config['contrast'])
+            if self.config['low_contrast_mode']:
+                self.oled.oled.precharge(0x22)
+        else:
+            self.oled = oled.OLED(enable = False)
         self.oled.show(_app_name, "__init__", separator = False)
 
         self._validate_config()
@@ -105,7 +108,7 @@ class Spotify:
             print("no \"memdebug\" file or directory found, memory debug output disabled")
 
     def _validate_config(self):
-        boolean_entries = const("use_led,use_buzzer,setup_network,enable_webrepl,show_progress_ticks,low_contrast_mode,blank_oled_on_standby")
+        boolean_entries = const("use_display,use_led,use_buzzer,setup_network,enable_webrepl,show_progress_ticks,low_contrast_mode,blank_oled_on_standby")
         integer_entries = const("contrast,status_poll_interval_seconds,standby_status_poll_interval_minutes,idle_standby_minutes,long_press_duration_milliseconds,api_request_dot_size,buzzer_frequency,buzzer_duty")
         dict_entries = const("spotify,pins,wlan")
         spotify_entries = const("client_id,client_secret")
@@ -143,11 +146,15 @@ class Spotify:
     def _wait_for_connection(self):
         was_connected = self.wlan.isconnected()
 
+        if not self.config['use_display'] and not self.wlan.isconnected():
+            print("waiting for connection...")
+
         while not self.wlan.isconnected():
-            self.oled.show(_app_name, "waiting for connection", separator = False)
-            time.sleep_ms(500)
-            self.oled.show(_app_name, "waiting for connection", separator = True)
-            time.sleep_ms(500)
+            if self.config['use_display']:
+                self.oled.show(_app_name, "waiting for connection", separator = False)
+                time.sleep_ms(500)
+                self.oled.show(_app_name, "waiting for connection", separator = True)
+                time.sleep_ms(500)
 
         if not was_connected:
             self._reset_button_presses()
@@ -385,6 +392,7 @@ class Spotify:
                 self.oled.show("Unknown content", "")
             await asyncio.sleep(seconds)
         else:
+            show_progress = True
             progress_start = time.time()
             progress = None
 
@@ -417,7 +425,11 @@ class Spotify:
                     playing_artist = cp['item'].get('show', {}).get('name', 'Unknown Podcast')
                     playing_title = cp['item'].get('name', 'Unknown Episode')
 
-                self.oled.show(playing_artist, playing_title, progress = progress, ticks = self.config['show_progress_ticks'])
+                if show_progress:
+                    self.oled.show(playing_artist, playing_title, progress = progress, ticks = self.config['show_progress_ticks'])
+                    if not self.config['use_display']:
+                        show_progress = False
+
                 if time.time() >= progress_start + seconds:
                     break
 
@@ -470,6 +482,7 @@ class Spotify:
 
     async def _start_standby(self, last_playing):
         loop_begins = time.time()
+        show_progress = True
 
         while loop_begins + (self.config['status_poll_interval_seconds'] - 1) > time.time():
 
@@ -479,7 +492,10 @@ class Spotify:
             if time.time() >= standby_time:
                 return True
 
-            self.oled.show("Spotify", "not playing", progress = progress, ticks = False)
+            if show_progress:
+                self.oled.show("Spotify", "not playing", progress = progress, ticks = False)
+                if not self.config['use_display']:
+                    show_progress = False
 
             if await self._wait_for_button_press_ms(1000):
                 return False

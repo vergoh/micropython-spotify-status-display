@@ -8,19 +8,25 @@ import textutils
 
 class OLED:
 
-    def __init__(self, scl_pin = 22, sda_pin = 21, contrast = 127):
-        self.i2c = SoftI2C(scl = Pin(scl_pin), sda = Pin(sda_pin))
+    def __init__(self, scl_pin = 22, sda_pin = 21, contrast = 127, enable = True):
         self.oled_width = 128
         self.oled_height = 64
+        self.standby_x = 0
+        self.standby_y = 0
+        self.status_dot = False
+        self.status_dot_size = 1
+
+        if enable is False:
+            self.enabled = False
+            return
+
+        self.i2c = SoftI2C(scl = Pin(scl_pin), sda = Pin(sda_pin))
         self.oled = ssd1306.SSD1306_I2C(self.oled_width, self.oled_height, self.i2c)
         self.oled.fill(0)
         self.oled.contrast(contrast)
         self.oled.text("      ...      ", 4, 30)
         self.oled.show()
-        self.standby_x = 0
-        self.standby_y = 0
-        self.status_dot = False
-        self.status_dot_size = 1
+        self.enabled = True
 
     def _replace_chars(self, text):
         result = []
@@ -52,6 +58,13 @@ class OLED:
         return ''.join(result)
 
     def show(self, artist, title, progress = None, ticks = True, separator = True):
+        if not self.enabled:
+            if progress is not None:
+                print("Display: {} - {} ({}%)".format(artist.strip(), title.strip(), progress))
+            else:
+                print("Display: {} - {}".format(artist.strip(), title.strip()))
+            return
+
         self.oled.fill(0)
 
         if self.status_dot:
@@ -115,6 +128,9 @@ class OLED:
         self.oled.show()
 
     def standby(self):
+        if not self.enabled:
+            return
+
         self.oled.fill(0)
         self.oled.pixel(self.standby_x, self.standby_y, 1)
         self.oled.show()
@@ -129,6 +145,9 @@ class OLED:
             self.standby_y -= 1
 
     def _corner_dot(self, fill, size = 1):
+        if not self.enabled:
+            return
+
         for x in range(self.oled_width - size, self.oled_width):
             for y in range(size):
                 self.oled.pixel(x, y, fill)
@@ -149,5 +168,8 @@ class OLED:
         self.status_dot = False
 
     def clear(self):
+        if not self.enabled:
+            return
+
         self.oled.fill(0)
         self.oled.show()
