@@ -11,11 +11,12 @@
 5. Save the settings dialog
 6. Click "Show client secret" and take note of both "Client ID" and "Client Secret"
 
-## Edit src/config.json
+## Create and edit src/config.json
 
-1. Fill `client_id` and `client_secret` with values acquired in previous step
-2. Fill `pins` section according to used wiring
-3. Fill `wlan` section, use `mdns` value selected in previous step
+1. Create a copy of the file `src/config.json.bk` with the name of `src/config.json`
+2. Fill `client_id` and `client_secret` with values acquired in previous step
+3. Fill `pins` section according to used wiring
+4. Fill `wlan` section, use `mdns` value selected in previous step
 
 ## Send implementation and config to device
 
