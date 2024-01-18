@@ -1,7 +1,7 @@
 {
 	"use_led": false,
-    "use_buzzer": true,
-    "use_display": true,
+	"use_buzzer": true,
+	"use_display": true,
 	"setup_network": true,
 	"enable_webrepl": false,
 	"show_progress_ticks": true,
