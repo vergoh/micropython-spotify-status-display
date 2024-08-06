@@ -321,7 +321,7 @@ class Spotify:
         r = spotify_api.pause_playback(api_tokens)
         self.oled.hide_corner_dot(self.config['api_request_dot_size'])
 
-        self._validate_api_reply("pause", r, ok_status_list = [202, 204], warn_status_list = [0, 401, 403, 429])
+        self._validate_api_reply("pause", r, ok_status_list = [200, 202, 204], warn_status_list = [0, 401, 403, 429])
 
         print("playback paused")
 
@@ -330,7 +330,7 @@ class Spotify:
         r = spotify_api.resume_playback(api_tokens, device_id = device_id)
         self.oled.hide_corner_dot(self.config['api_request_dot_size'])
 
-        self._validate_api_reply("resume", r, ok_status_list = [202, 204, 404], warn_status_list = [403])
+        self._validate_api_reply("resume", r, ok_status_list = [200, 202, 204, 404], warn_status_list = [403])
 
         if r['status_code'] == 404:
             print("no active device found")
@@ -344,7 +344,7 @@ class Spotify:
         r = spotify_api.next_playback(api_tokens, device_id = device_id)
         self.oled.hide_corner_dot(self.config['api_request_dot_size'])
 
-        self._validate_api_reply("next", r, ok_status_list = [202, 204, 404], warn_status_list = [0, 401, 403, 429])
+        self._validate_api_reply("next", r, ok_status_list = [200, 202, 204, 404], warn_status_list = [0, 401, 403, 429])
 
         if r['status_code'] == 404:
             print("no active device found")
