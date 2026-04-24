@@ -394,11 +394,8 @@ class Spotify:
         else:
             show_progress = True
             progress_start = time.time()
-            progress = None
-
-            if 'progress_ms' in cp and 'duration_ms' in cp['item']:
-                progress_ms = cp['progress_ms']
-                progress = True
+            progress_ms = cp['progress_ms']
+            progress = True
 
             while True:
                 interval_begins = time.ticks_ms()

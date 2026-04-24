@@ -92,6 +92,7 @@ def request(method, url, data=None, json=None, headers={}, parse_headers=True):
         try:
             s.connect(ai[-1])
             if proto == "https:":
+                # pylint: disable=possibly-used-before-assignment
                 #ctx = ussl.SSLContext()
                 s = ussl.wrap_socket(s, server_hostname=host)
             s.write(b"%s /%s HTTP/1.0\r\n" % (method, path))
