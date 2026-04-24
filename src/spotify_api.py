@@ -17,7 +17,7 @@ def _spotify_api_request(method, url, data = None, headers = None, retry = True)
     ret = {'status_code': 0, 'json': {}, 'text': 'No reply content'}
     print("{} {}".format(method, url))
     try:
-        r = requests.request(method, url, data = data, headers = headers)
+        r = requests.request(method, url, data = data, headers = headers, parse_headers = False)
     except OSError as e:
         print("OSError: {}".format(e))
         ret['text'] = str(e)
@@ -52,12 +52,20 @@ def _spotify_api_request(method, url, data = None, headers = None, retry = True)
                 return _spotify_api_request(method, url, data = data, headers = headers, retry = False)
             ret['status_code'] = 0
             ret['json'] = {'exception': 1}
+            # Avoid allocating response body here; memory is likely already tight.
             ret['text'] = str(e)
 
     if len(ret['json']) == 0:
+        # Only keep a small body prefix for debugging (avoid full buffering/decoding).
         try:
-            ret['text'] = r.text
-        except:
+            if r.status_code < 200 or r.status_code >= 300:
+                body_prefix = r.read(256)
+                if body_prefix:
+                    try:
+                        ret['text'] = body_prefix.decode("utf-8")
+                    except Exception:
+                        ret['text'] = str(body_prefix)
+        except Exception:
             pass
 
     try:

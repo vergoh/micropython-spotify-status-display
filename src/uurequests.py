@@ -18,6 +18,19 @@ class Response:
             self.raw = None
         self._cached = None
 
+    def read(self, size=-1):
+        if not self.raw:
+            return b""
+        try:
+            data = self.raw.read(size)
+            return data if data is not None else b""
+        finally:
+            if size == -1:
+                try:
+                    self.raw.close()
+                finally:
+                    self.raw = None
+
     @property
     def content(self):
         if self._cached is None:
@@ -34,6 +47,17 @@ class Response:
 
     def json(self):
         import ujson
+        # Prefer streaming parse to avoid buffering the whole body
+        if self.raw is not None:
+            try:
+                return ujson.load(self.raw)
+            finally:
+                try:
+                    self.raw.close()
+                finally:
+                    self.raw = None
+                    self._cached = None
+        # Fallback if body was already cached/read
         return ujson.loads(self.content)
 
 

@@ -2,8 +2,6 @@
 # Copyright (c) 2020 Teemu Toivola
 # https://github.com/vergoh/micropython-spotify-status-display
 
-import re
-
 def wrap(inputstring, width = 70, center = False):
     if inputstring is None:
         return [""]
@@ -48,7 +46,12 @@ def wrap(inputstring, width = 70, center = False):
         output.append(o_buffer)
 
     for i in range(len(output)):
-        output[i] = re.sub(r'^- | -$', '', output[i])
+        s = output[i]
+        if s.startswith("- "):
+            s = s[2:]
+        if s.endswith(" -"):
+            s = s[:-2]
+        output[i] = s
         if center:
             output[i] = "{:^{width}}".format(output[i], width=width)
 
