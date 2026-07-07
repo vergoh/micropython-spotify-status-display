@@ -129,7 +129,9 @@ def next_playback(api_tokens, device_id = None):
     return _spotify_api_request("POST", spotify_player_api_url, headers = headers)
 
 def save_track(api_tokens, track_id):
-    spotify_me_api_url = "{}/v1/me/tracks?ids={}".format(_spotify_api_base, track_id)
+    spotify_library_api_url = "{}/v1/me/library".format(_spotify_api_base)
+    query = urlencode({'uris': 'spotify:track:{}'.format(track_id)})
+    spotify_library_api_url += "?{}".format(query)
     headers = { 'Authorization': "Bearer {}".format(api_tokens['access_token']) }
 
-    return _spotify_api_request("PUT", spotify_me_api_url, headers = headers)
+    return _spotify_api_request("PUT", spotify_library_api_url, headers = headers)
