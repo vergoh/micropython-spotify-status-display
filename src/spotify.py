@@ -69,7 +69,7 @@ class Spotify:
                 self.wlan.config(dhcp_hostname=self.config['wlan']['mdns'])
             except Exception as e:
                 self.oled.show(e.__class__.__name__, str(e))
-                if str(e) == "Wifi Internal Error":
+                if str(e) == "Wifi Internal Error" or str(e) == "Wifi Internal State Error":
                     time.sleep(3)
                     import machine
                     machine.reset()
