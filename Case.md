@@ -1,5 +1,9 @@
 # Case
 
+## DEPRECATED
+
+Lolin32 Lite board suggested below doesn't have the PSRAM needed for getting the implementation running with the TLS requirements Spotify has started enforcing. Using another board, such as Wemos S2 mini, is mandatory but will not properly fit the case design shown below. These instructions will be updated once a new case design is exists.
+
 ## Required components
 
 - [Lolin32 Lite](https://www.google.com/search?q=Lolin32+Lite)

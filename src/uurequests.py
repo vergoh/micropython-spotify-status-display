@@ -1,6 +1,27 @@
 # based on https://github.com/pfalcon/pycopy-lib/blob/master/uurequests/uurequests.py
 
-import usocket
+import gc
+
+try:
+    import usocket as socket
+except ImportError:
+    import socket
+
+try:
+    import ussl as ssl
+except ImportError:
+    import ssl
+
+
+def _read_line(sock):
+    line = b''
+    while not line.endswith(b'\r\n'):
+        chunk = sock.read(1)
+        if not chunk:
+            return None
+        line += chunk
+    return line
+
 
 class Response:
 
@@ -72,7 +93,6 @@ def request(method, url, data=None, json=None, headers={}, parse_headers=True):
         if proto == "http:":
             port = 80
         elif proto == "https:":
-            import ussl
             port = 443
         else:
             raise ValueError("Unsupported protocol: " + proto)
@@ -81,20 +101,19 @@ def request(method, url, data=None, json=None, headers={}, parse_headers=True):
             host, port = host.split(":", 1)
             port = int(port)
 
-        ai = usocket.getaddrinfo(host, port, 0, usocket.SOCK_STREAM)
+        ai = socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM)
         ai = ai[0]
 
         resp_d = None
         if parse_headers is not False:
             resp_d = {}
 
-        s = usocket.socket(ai[0], ai[1], ai[2])
+        s = socket.socket(ai[0], ai[1], ai[2])
         try:
             s.connect(ai[-1])
             if proto == "https:":
-                # pylint: disable=possibly-used-before-assignment
-                #ctx = ussl.SSLContext()
-                s = ussl.wrap_socket(s, server_hostname=host)
+                gc.collect()
+                s = ssl.wrap_socket(s, server_hostname=host, cert_reqs=ssl.CERT_NONE)
             s.write(b"%s /%s HTTP/1.0\r\n" % (method, path))
             if not "Host" in headers:
                 s.write(b"Host: %s\r\n" % host)
@@ -117,7 +136,9 @@ def request(method, url, data=None, json=None, headers={}, parse_headers=True):
             if data:
                 s.write(data)
 
-            l = s.readline()
+            l = _read_line(s)
+            if l is None:
+                raise OSError("connection closed before response")
             #print(l)
             l = l.split(None, 2)
             status = int(l[1])
@@ -125,8 +146,8 @@ def request(method, url, data=None, json=None, headers={}, parse_headers=True):
             if len(l) > 2:
                 reason = l[2].rstrip()
             while True:
-                l = s.readline()
-                if not l or l == b"\r\n":
+                l = _read_line(s)
+                if l is None or l == b"\r\n":
                     break
                 #print(l)
 
@@ -150,7 +171,7 @@ def request(method, url, data=None, json=None, headers={}, parse_headers=True):
                     resp_d[k] = v.strip()
                 else:
                     parse_headers(l, resp_d)
-        except OSError:
+        except (OSError, AttributeError, ValueError):
             s.close()
             raise
 

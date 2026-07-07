@@ -87,7 +87,7 @@ class Spotify:
         self._wait_for_connection()
 
         self.ip = self.wlan.ifconfig()[0]
-        self.redirect_uri = "http://{}.local/callback/".format(self.config['wlan']['mdns'])
+        self.redirect_uri = "https://{}.local/callback/".format(self.config['wlan']['mdns'])
 
         self.oled.show(_app_name, "__init__ connected {}".format(self.ip), separator = False)
         print("connected at {} as {}".format(self.ip, self.config['wlan']['mdns']))
@@ -230,6 +230,30 @@ class Spotify:
         self.oled.show(_app_name, "{} api unhandled error {}".format(api_call_name, api_reply['status_code']), separator = False)
         raise RuntimeError("{} api unhandled status_code {} - {}".format(api_call_name, api_reply['status_code'], api_reply['text']))
 
+    def _load_authorized_at(self):
+        try:
+            with open('authorized_at.txt', 'r') as f:
+                return int(f.readline().strip())
+        except (OSError, ValueError):
+            return None
+
+    def _save_authorized_at(self, ts):
+        with open('authorized_at.txt', 'w') as f:
+            f.write(str(int(ts)))
+
+    def _discard_stored_tokens(self):
+        import os
+
+        for token_file in ('refresh_token.txt', 'authorized_at.txt'):
+            try:
+                os.remove(token_file)
+                print("{} removed".format(token_file))
+            except OSError:
+                pass
+
+    def _is_refresh_token_invalid(self, api_reply):
+        return api_reply['status_code'] == 400 and api_reply['json'].get('error') == 'invalid_grant'
+
     def _get_api_tokens(self, authorization_code):
         self.oled.show_corner_dot(self.config['api_request_dot_size'])
         r = spotify_api.get_api_tokens(authorization_code, self.redirect_uri, self.config['spotify']['client_id'], self.config['spotify']['client_secret'])
@@ -242,11 +266,14 @@ class Spotify:
 
         print("received: {}".format(api_tokens))
         api_tokens['timestamp'] = time.time()
+        api_tokens['authorized_at'] = api_tokens['timestamp']
 
         if 'refresh_token' in api_tokens:
             with open('refresh_token.txt', 'w') as f:
                 f.write(api_tokens['refresh_token'])
             print("refresh_token.txt created")
+            self._save_authorized_at(api_tokens['authorized_at'])
+            print("authorized_at.txt created")
 
         return api_tokens
 
@@ -254,6 +281,13 @@ class Spotify:
         self.oled.show_corner_dot(self.config['api_request_dot_size'])
         r = spotify_api.refresh_access_token(api_tokens, self.config['spotify']['client_id'], self.config['spotify']['client_secret'])
         self.oled.hide_corner_dot(self.config['api_request_dot_size'])
+
+        if self._is_refresh_token_invalid(r):
+            print("refresh token invalid (invalid_grant), re-authorization required")
+            self.oled.show(_app_name, "login expired", separator = False)
+            time.sleep(3)
+            self._discard_stored_tokens()
+            self._initial_token_request()
 
         warn_status_list = []
         if 'timestamp' in api_tokens:
@@ -267,6 +301,8 @@ class Spotify:
 
         print("received: {}".format(new_api_tokens))
         new_api_tokens['timestamp'] = time.time()
+        if 'authorized_at' in api_tokens:
+            new_api_tokens['authorized_at'] = api_tokens['authorized_at']
 
         if 'refresh_token' in new_api_tokens:
             if new_api_tokens['refresh_token'] != api_tokens['refresh_token']:
@@ -366,16 +402,20 @@ class Spotify:
         import spotify_auth
         import machine
 
-        self.oled.show("Login", "http:// {}.local".format(self.config['wlan']['mdns']), separator = False)
-        authorization_code = spotify_auth.get_authorization_code(self.config['spotify']['client_id'], self.redirect_uri, self.ip, self.config['wlan']['mdns'])
+        gc.collect()
+        self.oled.show("Login", "https://{}.local".format(self.config['wlan']['mdns']), separator = False)
+        authorization_code = spotify_auth.get_authorization_code(self.config['spotify']['client_id'], self.redirect_uri, self.config['wlan']['mdns'])
 
         if authorization_code == None:
-            self.oled.show(_app_name, "get_auth_code() failed", separator = False)
+            self.oled.show(_app_name, "login failed", separator = False)
             raise RuntimeError("get_auth_code() failed")
 
         self.oled.show(_app_name, "authorized", separator = False)
         print("authorization_code content: {}".format(authorization_code))
 
+        gc.collect()
+        time.sleep_ms(200)
+        gc.collect()
         self._get_api_tokens(authorization_code)
 
         self.oled.show(_app_name, "authorized, rebooting", separator = False)
@@ -514,7 +554,11 @@ class Spotify:
         else:
             refresh_token = refresh_token_file.readline().strip()
             refresh_token_file.close()
-            api_tokens = self._refresh_access_token({ 'refresh_token': refresh_token })
+            api_tokens = { 'refresh_token': refresh_token }
+            authorized_at = self._load_authorized_at()
+            if authorized_at is not None:
+                api_tokens['authorized_at'] = authorized_at
+            api_tokens = self._refresh_access_token(api_tokens)
 
         self.oled.show(_app_name, "tokenized", separator = False)
         print("api_tokens content: {}".format(api_tokens))

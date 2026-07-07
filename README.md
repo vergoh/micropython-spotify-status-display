@@ -16,6 +16,8 @@ MicroPython implementation for ESP32 using a small OLED display to show the "cur
   - add current track to library
 - configurable poll interval and behaviour
 - access token stored in device after initial login
+- automatic Spotify re-login when refresh token expires
+- HTTPS login page with self-signed certificate for Spotify OAuth
 - buzzer (optional) for confirming button presses
 - screensaver for standby mode
 - self contained implementation
@@ -23,8 +25,10 @@ MicroPython implementation for ESP32 using a small OLED display to show the "cur
 
 ## Requirements
 
-- ESP32 with [MicroPython](https://micropython.org/) 1.14 or later
-  - version 1.18 or later recommended
+- ESP32 with PSRAM with [MicroPython](https://micropython.org/) 1.23 or later
+  - Spotify has enforced HTTPS in callbacks URLs resulting in this version and PSRAM requirement
+  - tested with 1.28.0 using Wemos S2 mini
+  - previously used Lolin32 Lite board does statisfy these new requirements
 - SSD1306 or SSD1309 compatible 128x64 pixel OLED display in i2c mode
   - optional if buttons are only needed / used
   - verified
